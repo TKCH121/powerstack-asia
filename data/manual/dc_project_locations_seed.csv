@@ -1,0 +1,4 @@
+project_id,latitude,longitude,location_precision,location_reference,title_reference,location_source,fact_type,notes
+DC-JHR-001,1.430849,103.595110,PARK_PROXY,Nusajaya Tech Park,,OpenStreetMap local extract,DERIVED,"Representative point of mapped Nusajaya Tech Park polygon; not exact GDS parcel."
+DC-JHR-002,1.699131,103.415482,PARK_SECTION_PROXY,STeP East,,OpenStreetMap local extract,INFERRED,"Representative point of mapped STeP East polygon; Yondr disclosed Sedenak Tech Park/STeP location but this is not exact campus geometry."
+DC-JHR-003,,,EXACT_PLOT_ID_NO_GEOMETRY,"Plot 4A, Edupark West; PTD 213429","HSD 598990","KPKT OSC / Nestcon disclosure",VERIFIED,"Exact development plot identifier verified, but authoritative polygon/centroid not yet found. Do not substitute a guessed coordinate."
