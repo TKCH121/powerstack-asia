@@ -7,7 +7,9 @@ def replace_from_csv(con, table_name: str, csv_name: str):
     df = pd.read_csv(path)
     con.register("seed_df", df)
     con.execute(f"DELETE FROM {table_name}")
-    con.execute(f"INSERT INTO {table_name} SELECT * FROM seed_df")
+    con.execute(
+    f"INSERT INTO {table_name} BY NAME SELECT * FROM seed_df"
+    )
     con.unregister("seed_df")
     print(f"Loaded {len(df)} rows into {table_name}")
 
