@@ -24,22 +24,26 @@ Project-linked asset events: asset identity/type/voltage, dated event, and `stat
 
 ## Power Pathway model
 
-The three Power Pathway tables remain empty until source-backed records are curated. Stable `pathway_id`, `component_id`, and `milestone_id` values identify records.
+The three Power Pathway tables contain the source-backed schema unit-test records for the three current historical projects. Stable `pathway_id`, `component_id`, and `milestone_id` values identify records.
 
 ### `power_pathways`
 
 One assessment envelope per project and prediction date:
 
 - `pathway_id`, `project_id`
-- `prediction_date`, `prediction_date_precision`
+- `prediction_date`, `prediction_date_precision`: the decision or event boundary being assessed
+- `information_cutoff_date`, `information_cutoff_date_precision`: optional latest information an ex-ante assessment may use; leave both null when no defensible cutoff is established
 - `assessment_scope`: `CURRENT_STATE` or `EX_ANTE`
 - `prediction_context`: optional context such as `PRE_LAND_ACQUISITION`, `PRE_ESA`, `PRE_CONSTRUCTION`, or `CURRENT_SCREEN`
-- `target_supply_mw`, `ultimate_supply_mw`
-- `target_supply_mw_qualifier`, `ultimate_supply_mw_qualifier`: `EXACT`, `APPROXIMATE`, `GREATER_THAN`, `LESS_THAN`, or `NOT_FOUND`
+- `target_power_mw`, `ultimate_power_mw`: electricity-related quantities only, never IT capacity
+- `target_power_measure_type`, `ultimate_power_measure_type`: `ELECTRICAL_SUPPLY`, `MAXIMUM_DEMAND`, `CONTRACTED_CAPACITY`, `CONNECTION_CAPACITY`, or `NOT_FOUND`
+- `target_power_mw_qualifier`, `ultimate_power_mw_qualifier`: `EXACT`, `APPROXIMATE`, `GREATER_THAN`, `LESS_THAN`, or `NOT_FOUND`
 - `pathway_type`, `connection_voltage_kv`
 - `fact_type`, `source_url`, `source_date`, `notes`
 
-Supply MW is distinct from IT capacity recorded in `dc_projects`. Do not convert qualified or missing values into invented exact numbers.
+Power MW is distinct from IT capacity recorded in `dc_projects`. Its measure type records whether the source describes electrical supply, maximum demand, contracted capacity, or connection capacity. Do not convert qualified or missing values into invented exact numbers.
+
+`prediction_date` and `information_cutoff_date` are not interchangeable. A historical outcome may occur at the prediction boundary, while model inputs must be limited to information on or before the independently established cutoff. This separation prevents project-enabled or post-decision infrastructure from leaking into ex-ante analysis.
 
 ### `power_pathway_components`
 

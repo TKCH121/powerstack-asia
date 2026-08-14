@@ -5,6 +5,89 @@ from config import DB_PATH, MANUAL_DIR
 from powerstack_utils import EVIDENCE_FACT_TYPES
 
 
+POWER_MEASURE_TYPES = {
+    "ELECTRICAL_SUPPLY",
+    "MAXIMUM_DEMAND",
+    "CONTRACTED_CAPACITY",
+    "CONNECTION_CAPACITY",
+    "NOT_FOUND",
+}
+
+POWER_MW_QUALIFIERS = {
+    "EXACT",
+    "APPROXIMATE",
+    "GREATER_THAN",
+    "LESS_THAN",
+    "NOT_FOUND",
+}
+
+
+def validate_power_pathways(df):
+    for column in [
+        "target_power_measure_type",
+        "ultimate_power_measure_type",
+    ]:
+        invalid = set(df[column].dropna()) - POWER_MEASURE_TYPES
+        if invalid:
+            raise ValueError(
+                f"power_pathways_seed.csv has invalid {column} values: "
+                f"{sorted(invalid)}"
+            )
+
+    for column in [
+        "target_power_mw_qualifier",
+        "ultimate_power_mw_qualifier",
+    ]:
+        invalid = set(df[column].dropna()) - POWER_MW_QUALIFIERS
+        if invalid:
+            raise ValueError(
+                f"power_pathways_seed.csv has invalid {column} values: "
+                f"{sorted(invalid)}"
+            )
+
+    for prefix in ["target", "ultimate"]:
+        mw_column = f"{prefix}_power_mw"
+        type_column = f"{prefix}_power_measure_type"
+        qualifier_column = f"{prefix}_power_mw_qualifier"
+
+        missing_mw = df[mw_column].isna()
+        invalid_missing = (
+            missing_mw
+            &
+            (
+                (df[type_column] != "NOT_FOUND")
+                |
+                (df[qualifier_column] != "NOT_FOUND")
+            )
+        )
+        invalid_present = (
+            ~missing_mw
+            &
+            (
+                (df[type_column] == "NOT_FOUND")
+                |
+                (df[qualifier_column] == "NOT_FOUND")
+            )
+        )
+
+        if invalid_missing.any() or invalid_present.any():
+            raise ValueError(
+                f"power_pathways_seed.csv has inconsistent {prefix} power "
+                "MW, measure type, or qualifier values."
+            )
+
+    cutoff_date_present = df["information_cutoff_date"].notna()
+    cutoff_precision_present = (
+        df["information_cutoff_date_precision"].notna()
+    )
+
+    if not cutoff_date_present.equals(cutoff_precision_present):
+        raise ValueError(
+            "power_pathways_seed.csv must provide information cutoff date "
+            "and precision together."
+        )
+
+
 def replace_from_csv(con, table_name: str, csv_name: str):
     path = MANUAL_DIR / csv_name
     df = pd.read_csv(path)
@@ -18,6 +101,9 @@ def replace_from_csv(con, table_name: str, csv_name: str):
             f"{csv_name} has invalid fact_type values: "
             f"{sorted(invalid_fact_types)}"
         )
+
+    if table_name == "power_pathways":
+        validate_power_pathways(df)
 
     con.register("seed_df", df)
     con.execute(f"DELETE FROM {table_name}")

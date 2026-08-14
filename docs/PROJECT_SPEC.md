@@ -20,7 +20,9 @@ Power readiness is not simply proximity to an existing substation. A pathway may
 ## Feature timing
 
 - **Current-state screening** may describe mapped lines, substations, zoning, and derived proximity.
-- **Historical analysis** must use only evidence available on or before its prediction date. Project-enabled or post-decision infrastructure is not a pre-decision predictor.
+- **Historical analysis** must use only evidence available on or before its explicit information cutoff. The prediction date is the decision/event boundary being assessed; it is not automatically the information cutoff. Project-enabled or post-decision infrastructure is not a pre-decision predictor.
+
+Pathway power quantities must identify their measure type, such as electrical supply or maximum demand. IT capacity remains a separate project attribute and must not be inserted into pathway power fields.
 
 ## MVP outputs
 
