@@ -73,6 +73,18 @@ The factsheet establishes design and voltage, not ESA, supply MW, energisation, 
 
 The canonical ingestion route is Geofabrik plus local Osmium filtering. OSM is a public/crowdsourced topology source; map features are `VERIFIED` public-map records, while distances derived from them are `DERIVED`. Neither establishes utility-confirmed headroom.
 
+## Historical OSM topology research
+
+- [ohsome API documentation](https://docs.ohsome.org/ohsome-api/v1/endpoints.html)
+- [OpenStreetMap API v0.6](https://wiki.openstreetmap.org/wiki/API_v0.6)
+- [Prototype method and limitations](HISTORICAL_OSM_PROTOTYPE.md)
+
+The PDG prototype uses ohsome to identify the OSM object version represented at
+the historical cutoff and the versioned OSM API to reconstruct exact geometry
+for nearest-distance candidates. Label presence `OSM_MAPPED_AS_OF_CUTOFF`, not
+`PRE_EXISTING_VERIFIED`; OSM history establishes map state, not physical asset
+timing or grid capacity.
+
 ## Historical feature warning
 
 Record infrastructure as `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, or `NOT_FOUND` where supported. In particular, the Yondr/Sedenak campus substation was project-enabled; its presence in today’s OSM cannot be used as an ex-ante predictor.
