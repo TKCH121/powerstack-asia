@@ -40,6 +40,20 @@ python src/build_site_substation_features.py
 
 `download_johor_zoning.py` and `download_johor_grid_bulk.py` refresh external source data and write ignored local artifacts. The latter uses Geofabrik plus Osmium; the earlier regional Overpass/OSMnx approach has been retired.
 
+## Historical OSM features
+
+Run the PDG historical-topology regression case with:
+
+```powershell
+python src/build_historical_osm_features.py
+```
+
+The extractor caches API responses under ignored `data/raw/research/` and writes
+derived outputs under ignored `data/processed/research/`. Historical OSM
+presence is public map-state evidence, not proof of physically pre-existing or
+available infrastructure. See `docs/HISTORICAL_OSM_PROTOTYPE.md` before using a
+different project.
+
 ## Current boundary
 
 This repository does not yet build ML or assign Power Pathway Score weights. The next data task is source-backed historical pathway evidence, including what was pre-existing, project-enabled, or post-decision.

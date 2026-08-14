@@ -77,13 +77,13 @@ The canonical ingestion route is Geofabrik plus local Osmium filtering. OSM is a
 
 - [ohsome API documentation](https://docs.ohsome.org/ohsome-api/v1/endpoints.html)
 - [OpenStreetMap API v0.6](https://wiki.openstreetmap.org/wiki/API_v0.6)
-- [Prototype method and limitations](HISTORICAL_OSM_PROTOTYPE.md)
+- [Historical extraction method and limitations](HISTORICAL_OSM_PROTOTYPE.md)
 
-The PDG prototype uses ohsome to identify the OSM object version represented at
-the historical cutoff and the versioned OSM API to reconstruct exact geometry
-for nearest-distance candidates. Label presence `OSM_MAPPED_AS_OF_CUTOFF`, not
-`PRE_EXISTING_VERIFIED`; OSM history establishes map state, not physical asset
-timing or grid capacity.
+The cached extractor uses ohsome to identify normal and construction-tagged OSM
+objects represented at the historical cutoff and the versioned OSM API to
+reconstruct exact geometry for nearest-distance candidates. Label presence
+`OSM_MAPPED_AS_OF_CUTOFF`, not `PRE_EXISTING_VERIFIED`; OSM history establishes
+map state, not physical asset timing or grid capacity.
 
 ## Historical feature warning
 
