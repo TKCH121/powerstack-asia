@@ -54,6 +54,21 @@ presence is public map-state evidence, not proof of physically pre-existing or
 available infrastructure. See `docs/HISTORICAL_OSM_PROTOTYPE.md` before using a
 different project.
 
+## Derived historical endpoint labels
+
+After loading the seed database, build conservative endpoint labels with:
+
+```powershell
+python src/build_historical_endpoint_labels.py --evaluation-date 2026-08-14
+```
+
+The ignored output is written to
+`data/processed/research/historical_endpoint_labels.csv`. Labels are derived
+from verified evidence and are never entered manually in seed CSVs. See
+`docs/HISTORICAL_ENDPOINT_LABELS.md` for event mappings, censoring, and negative
+label safeguards. The 100 MW endpoint records a qualifying power agreement; it
+does not represent physical commissioning, energisation, or delivery.
+
 ## Current boundary
 
 This repository does not yet build ML or assign Power Pathway Score weights. The next data task is source-backed historical pathway evidence, including what was pre-existing, project-enabled, or post-decision.
