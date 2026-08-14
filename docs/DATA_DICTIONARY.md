@@ -47,7 +47,9 @@ Power MW is distinct from IT capacity recorded in `dc_projects`. Its measure typ
 
 ### `power_pathway_components`
 
-One source-backed physical component per row. `component_type` may identify existing grid, a consumer landing station, SSU, PMU, line, cable, upstream reinforcement, or right-of-way. Component rows also record requirement status, timing, asset identity, voltage/capacity where stated, target and actual completion evidence, delivery/handover parties, optional links to existing event records, and provenance.
+One source-backed physical component per row. `component_type` is one of `EXISTING_GRID`, `CONSUMER_LANDING_STATION`, `SSU`, `PMU`, `SUBSTATION`, `LINE`, `CABLE`, `UPSTREAM_REINFORCEMENT`, `RIGHT_OF_WAY`, or `ONSITE_GENERATION`. Do not add hypothetical component rows or use `ONSITE_GENERATION` without project-specific evidence.
+
+`capacity_value` and `capacity_unit` preserve a source-stated component rating. Both must be populated together or both left null. Permitted units are `MW`, `MWac`, `MWp`, and `MVA`; retain the source unit and do not silently convert between them. Component rows also record requirement status, timing, asset identity, voltage, target and actual completion evidence, delivery/handover parties, optional links to existing event records, and provenance.
 
 `requirement_status` distinguishes `REQUIRED`, `NOT_REQUIRED_VERIFIED`, and `NOT_FOUND`. Use `NOT_REQUIRED_VERIFIED` only when a source explicitly verifies that the component is unnecessary.
 
@@ -61,7 +63,13 @@ One source-backed physical component per row. `component_type` may identify exis
 
 ### `power_pathway_milestones`
 
-One source-backed milestone per row. Fields cover milestone type/status, date and precision, supply MW, delivery party, an optional connection-event link, and provenance. Milestones may represent interim power, permanent power, target or actual energisation, a TNB study, ESA, planning approval, or TNB handover.
+One source-backed milestone per row. Fields cover milestone type/status, date and precision, power semantics, delivery party, an optional connection-event link, and provenance. Milestones may represent interim power, permanent power, target or actual energisation, a TNB study, ESA, planning approval, or TNB handover.
+
+- `power_mw`: a source-stated electricity-related quantity, never IT capacity
+- `power_measure_type`: `ELECTRICAL_SUPPLY`, `MAXIMUM_DEMAND`, `CONTRACTED_CAPACITY`, `CONNECTION_CAPACITY`, or `NOT_FOUND`
+- `power_mw_qualifier`: `EXACT`, `APPROXIMATE`, `GREATER_THAN`, `LESS_THAN`, or `NOT_FOUND`
+
+When `power_mw` is null, both semantic fields must be `NOT_FOUND`; when it is populated, neither may be `NOT_FOUND`. An ESA milestone does not by itself establish that its quantity is `ELECTRICAL_SUPPLY`; use the source's stated meaning.
 
 ### Evidence versus timing
 

@@ -61,7 +61,8 @@ POWER_PATHWAY_SCHEMAS = {
             "infrastructure_timing",
             "asset_name",
             "voltage_kv",
-            "capacity_mw",
+            "capacity_value",
+            "capacity_unit",
             "target_completion_date",
             "target_date_precision",
             "actual_completion_date",
@@ -84,7 +85,8 @@ POWER_PATHWAY_SCHEMAS = {
                 infrastructure_timing VARCHAR NOT NULL,
                 asset_name VARCHAR,
                 voltage_kv DOUBLE,
-                capacity_mw DOUBLE,
+                capacity_value DOUBLE,
+                capacity_unit VARCHAR,
                 target_completion_date VARCHAR,
                 target_date_precision VARCHAR,
                 actual_completion_date VARCHAR,
@@ -108,7 +110,9 @@ POWER_PATHWAY_SCHEMAS = {
             "milestone_status",
             "milestone_date",
             "date_precision",
-            "supply_mw",
+            "power_mw",
+            "power_measure_type",
+            "power_mw_qualifier",
             "delivery_party",
             "connection_event_id",
             "fact_type",
@@ -124,7 +128,9 @@ POWER_PATHWAY_SCHEMAS = {
                 milestone_status VARCHAR NOT NULL,
                 milestone_date VARCHAR,
                 date_precision VARCHAR,
-                supply_mw DOUBLE,
+                power_mw DOUBLE,
+                power_measure_type VARCHAR NOT NULL,
+                power_mw_qualifier VARCHAR NOT NULL,
                 delivery_party VARCHAR,
                 connection_event_id VARCHAR,
                 fact_type VARCHAR NOT NULL,
@@ -150,6 +156,45 @@ LEGACY_POWER_PATHWAY_COLUMNS = {
     "ultimate_supply_mw_qualifier",
     "pathway_type",
     "connection_voltage_kv",
+    "fact_type",
+    "source_url",
+    "source_date",
+    "notes",
+}
+
+LEGACY_POWER_PATHWAY_COMPONENT_COLUMNS = {
+    "component_id",
+    "pathway_id",
+    "component_type",
+    "requirement_status",
+    "infrastructure_timing",
+    "asset_name",
+    "voltage_kv",
+    "capacity_mw",
+    "target_completion_date",
+    "target_date_precision",
+    "actual_completion_date",
+    "actual_date_precision",
+    "delivery_party",
+    "handover_status",
+    "connection_event_id",
+    "grid_asset_event_id",
+    "fact_type",
+    "source_url",
+    "source_date",
+    "notes",
+}
+
+LEGACY_POWER_PATHWAY_MILESTONE_COLUMNS = {
+    "milestone_id",
+    "pathway_id",
+    "milestone_type",
+    "milestone_status",
+    "milestone_date",
+    "date_precision",
+    "supply_mw",
+    "delivery_party",
+    "connection_event_id",
     "fact_type",
     "source_url",
     "source_date",
@@ -342,9 +387,246 @@ def migrate_populated_power_pathways(con):
     print("Migrated 3 populated power_pathways rows without data loss.")
 
 
+def migrate_populated_pathway_evidence_tables(con):
+    """Atomically migrate populated component and milestone evidence tables."""
+    component_table = "power_pathway_components"
+    milestone_table = "power_pathway_milestones"
+
+    component_records = []
+    if table_exists(con, component_table):
+        component_columns = {
+            row[0]
+            for row in con.execute(f"DESCRIBE {component_table}").fetchall()
+        }
+        if component_columns == LEGACY_POWER_PATHWAY_COMPONENT_COLUMNS:
+            component_records = con.execute(
+                """
+                SELECT component_id, pathway_id, component_type,
+                       requirement_status, infrastructure_timing, asset_name,
+                       voltage_kv, capacity_mw, target_completion_date,
+                       target_date_precision, actual_completion_date,
+                       actual_date_precision, delivery_party, handover_status,
+                       connection_event_id, grid_asset_event_id, fact_type,
+                       source_url, source_date, notes
+                FROM power_pathway_components
+                ORDER BY component_id
+                """
+            ).fetchall()
+
+    if any(row[7] is not None for row in component_records):
+        raise RuntimeError(
+            "Refusing automatic component migration because a legacy "
+            "capacity_mw value has no source unit."
+        )
+
+    milestone_records = []
+    if table_exists(con, milestone_table):
+        milestone_columns = {
+            row[0]
+            for row in con.execute(f"DESCRIBE {milestone_table}").fetchall()
+        }
+        if milestone_columns == LEGACY_POWER_PATHWAY_MILESTONE_COLUMNS:
+            milestone_records = con.execute(
+                """
+                SELECT milestone_id, pathway_id, milestone_type,
+                       milestone_status, milestone_date, date_precision,
+                       supply_mw, delivery_party, connection_event_id,
+                       fact_type, source_url, source_date, notes
+                FROM power_pathway_milestones
+                ORDER BY milestone_id
+                """
+            ).fetchall()
+
+    milestone_power_semantics = {
+        "PPM-JHR-001-001": (None, "NOT_FOUND", "NOT_FOUND"),
+        "PPM-JHR-001-002": (16.0, "ELECTRICAL_SUPPLY", "EXACT"),
+        "PPM-JHR-001-003": (85.5, "MAXIMUM_DEMAND", "EXACT"),
+        "PPM-JHR-002-001": (None, "NOT_FOUND", "NOT_FOUND"),
+        "PPM-JHR-002-002": (None, "NOT_FOUND", "NOT_FOUND"),
+        "PPM-JHR-003-001": (280.0, "ELECTRICAL_SUPPLY", "EXACT"),
+    }
+    actual_milestone_baseline = [
+        (row[0], row[6]) for row in milestone_records
+    ]
+    expected_milestone_baseline = [
+        (milestone_id, semantics[0])
+        for milestone_id, semantics in milestone_power_semantics.items()
+    ]
+
+    if (
+        milestone_records
+        and actual_milestone_baseline != expected_milestone_baseline
+    ):
+        raise RuntimeError(
+            "Refusing automatic milestone migration because the populated "
+            "legacy rows do not match the approved six-row baseline."
+        )
+
+    migrations = []
+    if component_records:
+        migrations.append(component_table)
+    if milestone_records:
+        migrations.append(milestone_table)
+    if not migrations:
+        return
+
+    for table_name in migrations:
+        for suffix in ["schema_migration", "legacy_backup"]:
+            temporary_name = f"{table_name}_{suffix}"
+            if table_exists(con, temporary_name):
+                raise RuntimeError(
+                    f"Refusing migration because temporary table "
+                    f"{temporary_name!r} already exists."
+                )
+
+    con.execute("BEGIN TRANSACTION")
+
+    try:
+        if component_records:
+            migration_table = f"{component_table}_schema_migration"
+            migration_sql = POWER_PATHWAY_SCHEMAS[component_table][
+                "create_sql"
+            ].replace(
+                f"CREATE TABLE {component_table}",
+                f"CREATE TABLE {migration_table}",
+                1,
+            )
+            con.execute(migration_sql)
+            con.execute(
+                f"""
+                INSERT INTO {migration_table} (
+                    component_id, pathway_id, component_type,
+                    requirement_status, infrastructure_timing, asset_name,
+                    voltage_kv, capacity_value, capacity_unit,
+                    target_completion_date, target_date_precision,
+                    actual_completion_date, actual_date_precision,
+                    delivery_party, handover_status, connection_event_id,
+                    grid_asset_event_id, fact_type, source_url, source_date,
+                    notes
+                )
+                SELECT component_id, pathway_id, component_type,
+                       requirement_status, infrastructure_timing, asset_name,
+                       voltage_kv, capacity_mw, NULL,
+                       target_completion_date, target_date_precision,
+                       actual_completion_date, actual_date_precision,
+                       delivery_party, handover_status, connection_event_id,
+                       grid_asset_event_id, fact_type, source_url, source_date,
+                       notes
+                FROM {component_table}
+                ORDER BY component_id
+                """
+            )
+            migrated_components = con.execute(
+                f"""
+                SELECT component_id, pathway_id, component_type,
+                       requirement_status, infrastructure_timing, asset_name,
+                       voltage_kv, capacity_value, capacity_unit,
+                       target_completion_date, target_date_precision,
+                       actual_completion_date, actual_date_precision,
+                       delivery_party, handover_status, connection_event_id,
+                       grid_asset_event_id, fact_type, source_url, source_date,
+                       notes
+                FROM {migration_table}
+                ORDER BY component_id
+                """
+            ).fetchall()
+            expected_components = [
+                row[:8] + (None,) + row[8:] for row in component_records
+            ]
+            if migrated_components != expected_components:
+                raise RuntimeError(
+                    "Component migration verification failed; rolling back."
+                )
+
+        if milestone_records:
+            migration_table = f"{milestone_table}_schema_migration"
+            migration_sql = POWER_PATHWAY_SCHEMAS[milestone_table][
+                "create_sql"
+            ].replace(
+                f"CREATE TABLE {milestone_table}",
+                f"CREATE TABLE {migration_table}",
+                1,
+            )
+            con.execute(migration_sql)
+            con.execute(
+                f"""
+                INSERT INTO {migration_table} (
+                    milestone_id, pathway_id, milestone_type,
+                    milestone_status, milestone_date, date_precision,
+                    power_mw, power_measure_type, power_mw_qualifier,
+                    delivery_party, connection_event_id, fact_type,
+                    source_url, source_date, notes
+                )
+                SELECT milestone_id, pathway_id, milestone_type,
+                       milestone_status, milestone_date, date_precision,
+                       supply_mw,
+                       CASE milestone_id
+                           WHEN 'PPM-JHR-001-002' THEN 'ELECTRICAL_SUPPLY'
+                           WHEN 'PPM-JHR-001-003' THEN 'MAXIMUM_DEMAND'
+                           WHEN 'PPM-JHR-003-001' THEN 'ELECTRICAL_SUPPLY'
+                           ELSE 'NOT_FOUND'
+                       END,
+                       CASE WHEN supply_mw IS NULL
+                           THEN 'NOT_FOUND'
+                           ELSE 'EXACT'
+                       END,
+                       delivery_party, connection_event_id, fact_type,
+                       source_url, source_date, notes
+                FROM {milestone_table}
+                ORDER BY milestone_id
+                """
+            )
+            migrated_milestones = con.execute(
+                f"""
+                SELECT milestone_id, pathway_id, milestone_type,
+                       milestone_status, milestone_date, date_precision,
+                       power_mw, power_measure_type, power_mw_qualifier,
+                       delivery_party, connection_event_id, fact_type,
+                       source_url, source_date, notes
+                FROM {migration_table}
+                ORDER BY milestone_id
+                """
+            ).fetchall()
+            expected_milestones = [
+                row[:6] + milestone_power_semantics[row[0]] + row[7:]
+                for row in milestone_records
+            ]
+            if migrated_milestones != expected_milestones:
+                raise RuntimeError(
+                    "Milestone migration verification failed; rolling back."
+                )
+
+        for table_name in migrations:
+            migration_table = f"{table_name}_schema_migration"
+            backup_table = f"{table_name}_legacy_backup"
+            con.execute(
+                f"ALTER TABLE {table_name} RENAME TO {backup_table}"
+            )
+            con.execute(
+                f"ALTER TABLE {migration_table} RENAME TO {table_name}"
+            )
+            con.execute(f"DROP TABLE {backup_table}")
+
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+
+    con.execute("COMMIT")
+    for table_name, records in [
+        (component_table, component_records),
+        (milestone_table, milestone_records),
+    ]:
+        if records:
+            print(
+                f"Migrated {len(records)} populated {table_name} rows "
+                "without data loss."
+            )
+
+
 def migrate_power_pathway_schema(con):
     """Create the approved schema without discarding populated pathway data."""
     migrate_populated_power_pathways(con)
+    migrate_populated_pathway_evidence_tables(con)
 
     tables_to_replace = []
 

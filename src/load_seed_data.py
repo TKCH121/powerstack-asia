@@ -21,60 +21,86 @@ POWER_MW_QUALIFIERS = {
     "NOT_FOUND",
 }
 
+POWER_PATHWAY_COMPONENT_TYPES = {
+    "EXISTING_GRID",
+    "CONSUMER_LANDING_STATION",
+    "SSU",
+    "PMU",
+    "SUBSTATION",
+    "LINE",
+    "CABLE",
+    "UPSTREAM_REINFORCEMENT",
+    "RIGHT_OF_WAY",
+    "ONSITE_GENERATION",
+}
+
+POWER_PATHWAY_COMPONENT_CAPACITY_UNITS = {
+    "MW",
+    "MWac",
+    "MWp",
+    "MVA",
+}
+
+
+def validate_power_value_semantics(
+    df,
+    csv_name,
+    power_column,
+    measure_type_column,
+    qualifier_column,
+):
+    invalid_types = set(df[measure_type_column].dropna()) - POWER_MEASURE_TYPES
+    if invalid_types:
+        raise ValueError(
+            f"{csv_name} has invalid {measure_type_column} values: "
+            f"{sorted(invalid_types)}"
+        )
+
+    invalid_qualifiers = (
+        set(df[qualifier_column].dropna()) - POWER_MW_QUALIFIERS
+    )
+    if invalid_qualifiers:
+        raise ValueError(
+            f"{csv_name} has invalid {qualifier_column} values: "
+            f"{sorted(invalid_qualifiers)}"
+        )
+
+    missing_power = df[power_column].isna()
+    invalid_missing = (
+        missing_power
+        &
+        (
+            (df[measure_type_column] != "NOT_FOUND")
+            |
+            (df[qualifier_column] != "NOT_FOUND")
+        )
+    )
+    invalid_present = (
+        ~missing_power
+        &
+        (
+            (df[measure_type_column] == "NOT_FOUND")
+            |
+            (df[qualifier_column] == "NOT_FOUND")
+        )
+    )
+
+    if invalid_missing.any() or invalid_present.any():
+        raise ValueError(
+            f"{csv_name} has inconsistent {power_column}, "
+            f"{measure_type_column}, or {qualifier_column} values."
+        )
+
 
 def validate_power_pathways(df):
-    for column in [
-        "target_power_measure_type",
-        "ultimate_power_measure_type",
-    ]:
-        invalid = set(df[column].dropna()) - POWER_MEASURE_TYPES
-        if invalid:
-            raise ValueError(
-                f"power_pathways_seed.csv has invalid {column} values: "
-                f"{sorted(invalid)}"
-            )
-
-    for column in [
-        "target_power_mw_qualifier",
-        "ultimate_power_mw_qualifier",
-    ]:
-        invalid = set(df[column].dropna()) - POWER_MW_QUALIFIERS
-        if invalid:
-            raise ValueError(
-                f"power_pathways_seed.csv has invalid {column} values: "
-                f"{sorted(invalid)}"
-            )
-
     for prefix in ["target", "ultimate"]:
-        mw_column = f"{prefix}_power_mw"
-        type_column = f"{prefix}_power_measure_type"
-        qualifier_column = f"{prefix}_power_mw_qualifier"
-
-        missing_mw = df[mw_column].isna()
-        invalid_missing = (
-            missing_mw
-            &
-            (
-                (df[type_column] != "NOT_FOUND")
-                |
-                (df[qualifier_column] != "NOT_FOUND")
-            )
+        validate_power_value_semantics(
+            df,
+            "power_pathways_seed.csv",
+            f"{prefix}_power_mw",
+            f"{prefix}_power_measure_type",
+            f"{prefix}_power_mw_qualifier",
         )
-        invalid_present = (
-            ~missing_mw
-            &
-            (
-                (df[type_column] == "NOT_FOUND")
-                |
-                (df[qualifier_column] == "NOT_FOUND")
-            )
-        )
-
-        if invalid_missing.any() or invalid_present.any():
-            raise ValueError(
-                f"power_pathways_seed.csv has inconsistent {prefix} power "
-                "MW, measure type, or qualifier values."
-            )
 
     cutoff_date_present = df["information_cutoff_date"].notna()
     cutoff_precision_present = (
@@ -86,6 +112,46 @@ def validate_power_pathways(df):
             "power_pathways_seed.csv must provide information cutoff date "
             "and precision together."
         )
+
+
+def validate_power_pathway_components(df):
+    invalid_types = (
+        set(df["component_type"].dropna())
+        - POWER_PATHWAY_COMPONENT_TYPES
+    )
+    if invalid_types:
+        raise ValueError(
+            "power_pathway_components_seed.csv has invalid component_type "
+            f"values: {sorted(invalid_types)}"
+        )
+
+    invalid_units = (
+        set(df["capacity_unit"].dropna())
+        - POWER_PATHWAY_COMPONENT_CAPACITY_UNITS
+    )
+    if invalid_units:
+        raise ValueError(
+            "power_pathway_components_seed.csv has invalid capacity_unit "
+            f"values: {sorted(invalid_units)}"
+        )
+
+    capacity_present = df["capacity_value"].notna()
+    unit_present = df["capacity_unit"].notna()
+    if not capacity_present.equals(unit_present):
+        raise ValueError(
+            "power_pathway_components_seed.csv must provide capacity_value "
+            "and capacity_unit together."
+        )
+
+
+def validate_power_pathway_milestones(df):
+    validate_power_value_semantics(
+        df,
+        "power_pathway_milestones_seed.csv",
+        "power_mw",
+        "power_measure_type",
+        "power_mw_qualifier",
+    )
 
 
 def replace_from_csv(con, table_name: str, csv_name: str):
@@ -104,6 +170,10 @@ def replace_from_csv(con, table_name: str, csv_name: str):
 
     if table_name == "power_pathways":
         validate_power_pathways(df)
+    elif table_name == "power_pathway_components":
+        validate_power_pathway_components(df)
+    elif table_name == "power_pathway_milestones":
+        validate_power_pathway_milestones(df)
 
     con.register("seed_df", df)
     con.execute(f"DELETE FROM {table_name}")
