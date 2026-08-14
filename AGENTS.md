@@ -27,7 +27,7 @@ Run pipeline scripts from the repository root. Execute dependent geospatial step
 
 Use four-space Python indentation, `snake_case`, `UPPER_SNAKE_CASE` constants, `pathlib.Path`, and explicit provenance fields. Keep the stack limited to Python, Pandas/GeoPandas, DuckDB, Streamlit, Osmium, and public sources unless approved.
 
-Do not silently alter manual evidence CSVs. Historical analysis must use information available as of its prediction date; project-enabled infrastructure is not a pre-decision predictor. Do not add ML models, capacity claims, arbitrary pathway-score weights, or hard proximity rules.
+Do not silently alter manual evidence CSVs. Historical analysis must use information available as of its prediction date; project-enabled infrastructure is not a pre-decision predictor. Keep `fact_type` separate from `infrastructure_timing`, and use `NOT_REQUIRED_VERIFIED` only for explicitly verified absence. Do not add ML models, capacity claims, arbitrary pathway-score weights, or hard proximity rules.
 
 ## Validation and Review
 

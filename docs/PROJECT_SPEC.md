@@ -26,7 +26,9 @@ Power readiness is not simply proximity to an existing substation. A pathway may
 
 - Source-backed project, location, connection, and grid-asset timelines.
 - Current-state site features with explicit `DERIVED` provenance.
-- A future `power_pathways` evidence table with unknown values recorded as `NOT_FOUND`.
+- A three-table historical model: pathway assessments, physical components, and dated milestones. Each independently asserted record retains its evidence status and source.
+
+Infrastructure timing (`CURRENT_STATE`, `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, or `NOT_FOUND`) is separate from evidence classification. Explicitly verified absence uses `NOT_REQUIRED_VERIFIED`, not `NOT_FOUND`.
 
 ## Non-goals
 
