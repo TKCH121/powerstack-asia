@@ -1,11 +1,15 @@
-import re
 import shutil
-import subprocess
 
 import geopandas as gpd
 import pandas as pd
 
 from config import RAW_DIR, PROCESSED_DIR
+from powerstack_utils import (
+    PUBLIC_MAP_SOURCE_TYPE,
+    has_voltage,
+    max_voltage_kv,
+    run_command,
+)
 
 
 # ============================================================
@@ -41,94 +45,6 @@ HV_OUTPUT = (
 # ============================================================
 # HELPERS
 # ============================================================
-
-def run_command(command):
-
-    print()
-    print("Running:")
-    print(" ".join(command))
-    print()
-
-    subprocess.run(
-        command,
-        check=True,
-    )
-
-
-def parse_max_voltage_kv(value):
-    """
-    Return the highest explicitly stated OSM voltage.
-
-    Examples:
-
-        275000;132000
-            -> 275
-
-        132000;33000
-            -> 132
-
-        missing
-            -> None
-
-    Missing voltage is never inferred.
-    """
-
-    if value is None:
-        return None
-
-    try:
-
-        if pd.isna(value):
-            return None
-
-    except (TypeError, ValueError):
-        pass
-
-    numbers = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    if not numbers:
-        return None
-
-    volts = [
-        int(number)
-        for number in numbers
-    ]
-
-    return max(volts) / 1000
-
-
-def contains_voltage(value, target_kv):
-    """
-    Check whether the raw voltage field explicitly contains
-    a particular nominal voltage.
-    """
-
-    if value is None:
-        return False
-
-    try:
-
-        if pd.isna(value):
-            return False
-
-    except (TypeError, ValueError):
-        pass
-
-    numbers = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    voltages_kv = {
-        int(number) / 1000
-        for number in numbers
-    }
-
-    return target_kv in voltages_kv
-
 
 # ============================================================
 # MAIN
@@ -285,7 +201,7 @@ def main():
             "voltage"
         ]
         .apply(
-            parse_max_voltage_kv
+            max_voltage_kv
         )
     )
 
@@ -303,7 +219,7 @@ def main():
             ]
             .apply(
                 lambda value:
-                contains_voltage(
+                has_voltage(
                     value,
                     voltage_kv,
                 )
@@ -345,9 +261,9 @@ def main():
 
     substations[
         "fact_type"
-    ] = (
-        "VERIFIED_PUBLIC_MAP"
-    )
+    ] = "VERIFIED"
+
+    substations["source_type"] = PUBLIC_MAP_SOURCE_TYPE
 
     # We explicitly do not claim PMU status unless
     # independently supported.

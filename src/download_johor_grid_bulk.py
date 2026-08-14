@@ -1,7 +1,4 @@
-from pathlib import Path
-import re
 import shutil
-import subprocess
 
 import truststore
 truststore.inject_into_ssl()
@@ -11,6 +8,11 @@ import pandas as pd
 import requests
 
 from config import RAW_DIR, PROCESSED_DIR
+from powerstack_utils import (
+    PUBLIC_MAP_SOURCE_TYPE,
+    max_voltage_kv,
+    run_command,
+)
 
 
 # --------------------------------------------------
@@ -60,22 +62,6 @@ JOHOR_BBOX = (
     "104.330946,"
     "2.706822"
 )
-
-
-def run_command(command):
-    """
-    Run a command and stop immediately if it fails.
-    """
-
-    print()
-    print("Running:")
-    print(" ".join(command))
-    print()
-
-    subprocess.run(
-        command,
-        check=True,
-    )
 
 
 def download_file():
@@ -157,51 +143,6 @@ def download_file():
     print(
         f"Saved to: {REGIONAL_PBF}"
     )
-
-
-def parse_max_voltage(value):
-    """
-    Extract the highest stated voltage.
-
-    Examples:
-
-    132000
-        -> 132 kV
-
-    275000;132000
-        -> 275 kV
-
-    Missing
-        -> None
-
-    Missing voltage is NEVER guessed.
-    """
-
-    if value is None:
-        return None
-
-    try:
-
-        if pd.isna(value):
-            return None
-
-    except (TypeError, ValueError):
-        pass
-
-    values = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    if not values:
-        return None
-
-    volts = [
-        int(v)
-        for v in values
-    ]
-
-    return max(volts) / 1000
 
 
 def main():
@@ -359,7 +300,7 @@ def main():
     ] = (
         grid["voltage"]
         .apply(
-            parse_max_voltage
+            max_voltage_kv
         )
     )
 
@@ -398,7 +339,9 @@ def main():
 
     grid[
         "fact_type"
-    ] = "VERIFIED_PUBLIC_MAP"
+    ] = "VERIFIED"
+
+    grid["source_type"] = PUBLIC_MAP_SOURCE_TYPE
 
     grid[
         "available_capacity_mw"

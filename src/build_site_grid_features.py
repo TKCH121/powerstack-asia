@@ -1,9 +1,11 @@
-import re
-
 import geopandas as gpd
-import pandas as pd
 
 from config import PROCESSED_DIR
+from powerstack_utils import (
+    PROJECTED_CRS,
+    has_voltage,
+    nearest_feature_join,
+)
 
 
 # ============================================================
@@ -29,68 +31,6 @@ OUTPUT_CSV = (
     PROCESSED_DIR /
     "johor_industrial_grid_features.csv"
 )
-
-
-# Working projected CRS for Peninsular Malaysia.
-# Distances will therefore be measured in metres.
-PROJECTED_CRS = "EPSG:3375"
-
-
-# ============================================================
-# VOLTAGE HELPERS
-# ============================================================
-
-def extract_voltages_kv(value):
-    """
-    Extract every stated OSM voltage from a voltage field.
-
-    Examples:
-
-        "132000"
-            -> {132.0}
-
-        "275000;132000"
-            -> {275.0, 132.0}
-
-        missing
-            -> empty set
-
-    We deliberately do not infer missing voltage.
-    """
-
-    if value is None:
-        return set()
-
-    try:
-        if pd.isna(value):
-            return set()
-    except (TypeError, ValueError):
-        pass
-
-    numbers = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    if not numbers:
-        return set()
-
-    return {
-        int(number) / 1000
-        for number in numbers
-    }
-
-
-def has_voltage(value, target_kv):
-    """
-    Return True if the OSM voltage field explicitly
-    contains the requested voltage.
-    """
-
-    return (
-        target_kv
-        in extract_voltages_kv(value)
-    )
 
 
 # ============================================================
@@ -214,7 +154,7 @@ def calculate_nearest_line(
     # Nearest-neighbour spatial join
     # ----------------------------------------------
 
-    joined = gpd.sjoin_nearest(
+    joined = nearest_feature_join(
         candidates[
             [
                 "site_id",
@@ -222,28 +162,8 @@ def calculate_nearest_line(
             ]
         ],
         target_grid,
-        how="left",
-        distance_col=(
-            f"distance_{target_kv}kv_m"
-        ),
-    )
-
-    # GeoPandas can return multiple rows when two
-    # features are exactly equidistant.
-    #
-    # Keep one deterministic nearest result per site.
-    joined = (
-        joined
-        .sort_values(
-            [
-                "site_id",
-                f"distance_{target_kv}kv_m",
-            ]
-        )
-        .drop_duplicates(
-            subset="site_id",
-            keep="first",
-        )
+        candidate_id="site_id",
+        distance_column=f"distance_{target_kv}kv_m",
     )
 
     # ----------------------------------------------

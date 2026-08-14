@@ -1,71 +1,35 @@
 # Data Dictionary
 
-## dc_projects
+## Evidence fields
 
-- project_id: internal unique ID
-- operator: operator/developer
-- project_name: project/campus name
-- location_text: human-readable location
-- state: state
-- country: country
-- announced_it_mw: announced IT capacity if explicitly stated
-- secured_supply_mw: electricity supply explicitly stated as secured, if verified
-- target_operation_date: public target date/text
-- status: announced / construction / operating / unknown
-- source_url: supporting source
-- source_date: source publication date
-- fact_type: VERIFIED / DERIVED / INFERRED / NOT_FOUND
-- notes: caveats
+`fact_type` is one of `VERIFIED`, `DERIVED`, `INFERRED`, or `NOT_FOUND`. `source_type` may add context such as `PUBLIC_MAP`; it does not replace `fact_type`. Unknown is not zero.
 
-## connection_events
+## Loaded DuckDB tables
 
-- event_id
-- project_id
-- event_date: ISO-like text at the precision actually known, e.g. `2026-01-12`, `2022-10`, or `2023`
-- date_precision: DAY / MONTH / YEAR
-- event_type
-- voltage_kv
-- supply_mw
-- interim_or_permanent
-- grid_operator
-- infrastructure_name
-- contractor
-- source_url
-- fact_type
-- notes
+### `dc_projects`
 
-Suggested event types:
-- ESA_SIGNED
-- INTERIM_SUPPLY
-- SUPPLY_INCREASE
-- HV_CONNECTION_AWARD
-- SUBSTATION_AWARD
-- GRID_REINFORCEMENT
-- ENERGISED
-- OPERATION_STARTED
+Project identity, event-time/current operator, location text, announced IT MW, separately stated secured supply MW, location precision, status, source URL/date, fact type, and notes.
 
-## land_zoning
+### `connection_events`
 
-Downloaded from official geospatial service. Keep original source fields and geometry.
+Dated electricity and project events: `event_id`, `project_id`, date/precision, event type, voltage, supply MW, interim/permanent status, parties, source URL, fact type, and notes.
 
-## Future grid_assets
+### `dc_project_locations`
 
-- asset_id
-- asset_type
-- name
-- voltage_kv
-- latitude
-- longitude
-- source
-- confidence
+Project location evidence: coordinates when supported, location precision/reference, source, fact type, and notes. Missing coordinates must remain missing.
 
-## Future candidate_features
+### `grid_asset_events`
 
-Examples:
-- distance_to_275kv_km
-- distance_to_132kv_km
-- high_voltage_assets_5km
-- known_dc_mw_10km
-- recent_grid_events_10km
-- industrial_zone_flag
-- reinforcement_flag
+Project-linked asset events: asset identity/type/voltage, dated event, and `status_relative_to_project_decision`. Use this to distinguish `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, and `NOT_FOUND` when evidence supports them.
+
+### `power_pathways`
+
+An empty, future evidence table for prediction date, target and ultimate MW, pathway type, connection/infrastructure components, interim and permanent supply, target energisation, delivery/planning status, provenance, and notes. Populate only from source-backed evidence.
+
+### `source_registry`
+
+Reserved for a future structured source register. The authoritative current register is `docs/SOURCE_REGISTER.md`.
+
+## Geospatial artifacts
+
+`data/processed/johor_powerstack_site_features_v01.parquet` is a current-state, derived proximity table. It does not establish available capacity or historical suitability. Raw and processed artifacts are local and ignored by Git.

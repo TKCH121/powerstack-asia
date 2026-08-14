@@ -1,9 +1,8 @@
-import hashlib
-
 import geopandas as gpd
 import pandas as pd
 
 from config import PROCESSED_DIR
+from powerstack_utils import geometry_hash
 
 
 INPUT_FILE = (
@@ -15,22 +14,6 @@ AUDIT_FILE = (
     PROCESSED_DIR /
     "industrial_duplicate_audit.csv"
 )
-
-
-def geometry_hash(geometry):
-    """
-    Create a stable identifier from the polygon geometry.
-
-    Two polygons with identical geometry should therefore
-    receive the same geometry_hash.
-    """
-
-    if geometry is None:
-        return None
-
-    return hashlib.sha256(
-        geometry.normalize().wkb
-    ).hexdigest()
 
 
 def main():

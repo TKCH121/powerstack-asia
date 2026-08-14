@@ -1,69 +1,45 @@
 # PowerStack Asia
 
-A learning-and-validation project for estimating **power-pathway readiness** for large electricity loads in Johor, starting with data centres.
+PowerStack Asia is an evidence-first research project for Johor data-centre development. Its question is whether public evidence supports a **bankable >=100 MW power pathway by a specified energisation date**. A pathway may include infrastructure developed concurrently with the data centre; it is not a measure of distance to a substation alone.
 
-## First MVP question
+## Evidence rules
 
-> For a candidate location in Johor, what public evidence indicates that a viable >=100 MW power pathway could be available within 48 months?
+Every material fact is `VERIFIED`, `DERIVED`, `INFERRED`, or `NOT_FOUND`. Never guess missing facts, claim confidential grid headroom, or treat crowdsourced OSM topology as confirmed utility capacity.
 
-This repository intentionally starts simple:
+Keep two uses of infrastructure separate:
 
-1. Verified public source register
-2. Manually curated data-centre and connection-event seed data
-3. Johor land-use/zoning downloader
-4. DuckDB database
-5. Streamlit inspection app
-6. Later: grid geometry, engineered features, retrospective labels, and ML
-
-## Important modelling rule
-
-We do **not** claim to know confidential substation headroom.
-
-We distinguish:
-- `VERIFIED`: directly supported by a source
-- `DERIVED`: mechanically calculated from verified data
-- `INFERRED`: model or analyst inference
-- `NOT_FOUND`: searched for but not verified
+- **Current-state features** describe today’s mapped topology for site research.
+- **Ex-ante/as-of-date features** support historical analysis and exclude infrastructure built after, or because of, the project decision.
 
 ## Setup
-
-Open Anaconda Prompt or PowerShell where `conda` works:
 
 ```powershell
 conda env create -f environment.yml
 conda activate powerstack
-python -m ipykernel install --user --name powerstack --display-name "Python (powerstack)"
-```
-
-Initialize the local database:
-
-```powershell
+python src/check_setup.py
 python src/init_db.py
 python src/load_seed_data.py
-```
-
-Optional: download Johor planning/zoning data from the Malaysian government ArcGIS service:
-
-```powershell
-python src/download_johor_zoning.py
-```
-
-Run the starter app:
-
-```powershell
 streamlit run app/app.py
 ```
 
-Then open the local URL shown by Streamlit, usually `http://localhost:8501`.
+The DuckDB loader imports all curated manual evidence: projects, connection events, location evidence, and time-aware grid-asset events.
 
-## First milestone
+## Local geospatial pipeline
 
-Do **not** train ML yet.
+With local raw inputs already present, run the pipeline in this order:
 
-First build a reliable historical dataset of:
-- 30+ Johor data-centre projects/phases
-- 100+ dated power/grid/connection events
-- source URLs and evidence levels
-- target/actual energisation milestones where publicly verifiable
+```powershell
+python src/inspect_johor_zoning.py
+python src/build_site_grid_features.py
+python src/audit_industrial_sites.py
+python src/deduplicate_industrial_sites.py
+python src/extract_johor_substations.py
+python src/clean_johor_hv_substations.py
+python src/build_site_substation_features.py
+```
 
-Only after that should we build a retrospective scoring model and then ML.
+`download_johor_zoning.py` and `download_johor_grid_bulk.py` refresh external source data and write ignored local artifacts. The latter uses Geofabrik plus Osmium; the earlier regional Overpass/OSMnx approach has been retired.
+
+## Current boundary
+
+This repository does not yet build ML or assign Power Pathway Score weights. The next data task is source-backed historical pathway evidence, including what was pre-existing, project-enabled, or post-decision.

@@ -1,3 +1,5 @@
+"""Diagnostic cadastral-lot search; never treat candidates as verified parcels."""
+
 import json
 
 import geopandas as gpd

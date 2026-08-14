@@ -1,19 +1,20 @@
-import re
+"""Diagnostic current-state comparison, not an ex-ante historical model.
+
+This script preserves the GDS and Yondr/Sedenak findings, including the
+look-ahead-leakage warning. Its distances use a current OSM snapshot and must
+not be treated as pre-decision predictors or a site pass/fail rule.
+"""
 
 import geopandas as gpd
 import pandas as pd
 
-from config import RAW_DIR, PROCESSED_DIR
+from config import MANUAL_DIR, RAW_DIR, PROCESSED_DIR
+from powerstack_utils import PROJECTED_CRS, has_voltage
 
 
 # ============================================================
 # DIRECTORIES / FILES
 # ============================================================
-
-MANUAL_DIR = (
-    RAW_DIR.parent /
-    "manual"
-)
 
 PROJECT_FILE = (
     MANUAL_DIR /
@@ -49,9 +50,6 @@ OUTPUT_FILE = (
     PROCESSED_DIR /
     "historical_project_grid_calibration_v01.csv"
 )
-
-
-PROJECTED_CRS = "EPSG:3375"
 
 
 # ============================================================
@@ -113,57 +111,6 @@ PROJECT_GEOMETRIES = {
 # ============================================================
 # HELPERS
 # ============================================================
-
-def extract_voltages_kv(value):
-    """
-    Return every explicitly tagged voltage in kV.
-
-    Example:
-
-        "500000;275000;132000"
-
-    becomes:
-
-        {500, 275, 132}
-
-    Missing voltage is never inferred.
-    """
-
-    if value is None:
-        return set()
-
-    try:
-
-        if pd.isna(value):
-            return set()
-
-    except (TypeError, ValueError):
-
-        pass
-
-    numbers = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    return {
-        int(number) / 1000
-        for number in numbers
-    }
-
-
-def has_voltage(
-    value,
-    target_kv,
-):
-
-    return (
-        target_kv
-        in extract_voltages_kv(
-            value
-        )
-    )
-
 
 def nearest_feature(
     features,
@@ -993,68 +940,6 @@ def main():
                 f"{safe_value(edge_row, 'name')}"
             )
 
-        # ====================================================
-        # CURRENT HARD GRID RULE
-        # ====================================================
-        #
-        # Note:
-        # We deliberately ignore the >=10 ha land rule here
-        # because the proxy geometry is a park/park section,
-        # not the actual DC land parcel.
-        # ====================================================
-
-        result[
-            "passes_275kv_line_5km"
-        ] = (
-            result[
-                "distance_275kv_line_edge_km"
-            ]
-            <= 5
-        )
-
-        result[
-            "passes_275kv_substation_5km"
-        ] = (
-            result[
-                "distance_275kv_substation_edge_km"
-            ]
-            <= 5
-        )
-
-        result[
-            "passes_current_grid_screen"
-        ] = (
-            result[
-                "passes_275kv_line_5km"
-            ]
-            and
-            result[
-                "passes_275kv_substation_5km"
-            ]
-        )
-
-        print()
-        print(
-            "CURRENT 275 kV GRID SCREEN"
-        )
-
-        print("-" * 70)
-
-        print(
-            f"275 kV line <= 5 km: "
-            f"{result['passes_275kv_line_5km']}"
-        )
-
-        print(
-            f"275 kV substation <= 5 km: "
-            f"{result['passes_275kv_substation_5km']}"
-        )
-
-        print(
-            f"Overall grid screen: "
-            f"{result['passes_current_grid_screen']}"
-        )
-
         output_rows.append(
             result
         )
@@ -1095,8 +980,6 @@ def main():
 
         "distance_transmission_substation_edge_km",
         "proximity_percentile_transmission_substation",
-
-        "passes_current_grid_screen",
     ]
 
     print()

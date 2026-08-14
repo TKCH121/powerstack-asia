@@ -1,9 +1,8 @@
-import hashlib
-
 import geopandas as gpd
 import pandas as pd
 
 from config import PROCESSED_DIR
+from powerstack_utils import geometry_hash
 
 
 INPUT_FILE = (
@@ -40,21 +39,6 @@ SOURCE_METADATA_COLUMNS = [
     "seksyen_na",
     "pbt_name",
 ]
-
-
-def geometry_hash(geometry):
-    """
-    Exact geometry fingerprint.
-
-    Identical polygons should produce identical hashes.
-    """
-
-    if geometry is None:
-        return None
-
-    return hashlib.sha256(
-        geometry.normalize().wkb
-    ).hexdigest()
 
 
 def normalized_value(value):

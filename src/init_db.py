@@ -128,6 +128,83 @@ def main():
     )
     """)
 
+    # ==================================================
+    # TABLE 4 — PROJECT LOCATION EVIDENCE
+    # ==================================================
+
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS dc_project_locations (
+
+        project_id VARCHAR,
+        latitude DOUBLE,
+        longitude DOUBLE,
+        location_precision VARCHAR,
+        location_reference VARCHAR,
+        title_reference VARCHAR,
+        location_source VARCHAR,
+        fact_type VARCHAR,
+        notes VARCHAR
+    )
+    """)
+
+    # ==================================================
+    # TABLE 5 — TIME-AWARE GRID-ASSET EVENTS
+    # ==================================================
+
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS grid_asset_events (
+
+        asset_event_id VARCHAR,
+        project_id VARCHAR,
+        asset_name VARCHAR,
+        asset_type VARCHAR,
+        voltage_kv DOUBLE,
+        event_date VARCHAR,
+        date_precision VARCHAR,
+        event_type VARCHAR,
+        status_relative_to_project_decision VARCHAR,
+        source_url VARCHAR,
+        fact_type VARCHAR,
+        notes VARCHAR
+    )
+    """)
+
+    # ==================================================
+    # TABLE 6 — FUTURE POWER-PATHWAY EVIDENCE
+    # ==================================================
+    # Empty until source-backed pathway records are curated.
+
+    con.execute("""
+    CREATE TABLE IF NOT EXISTS power_pathways (
+
+        project_id VARCHAR,
+        prediction_date VARCHAR,
+        target_mw DOUBLE,
+        ultimate_demand_mw DOUBLE,
+        pathway_type VARCHAR,
+        connection_voltage_kv DOUBLE,
+        preexisting_grid VARCHAR,
+        new_consumer_landing_station VARCHAR,
+        new_ssu VARCHAR,
+        new_pmu VARCHAR,
+        new_line_or_cable VARCHAR,
+        major_upstream_reinforcement VARCHAR,
+        interim_supply_mw DOUBLE,
+        interim_supply_date VARCHAR,
+        permanent_supply_mw DOUBLE,
+        target_energisation_date VARCHAR,
+        right_of_way_required VARCHAR,
+        delivery_party VARCHAR,
+        handover_to_tnb VARCHAR,
+        tnb_study_status VARCHAR,
+        esa_status VARCHAR,
+        planning_status VARCHAR,
+        fact_type VARCHAR,
+        source_url VARCHAR,
+        notes VARCHAR
+    )
+    """)
+
     # --------------------------------------------------
     # Show tables created
     # --------------------------------------------------
