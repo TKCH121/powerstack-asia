@@ -1,3 +1,5 @@
+"""Diagnostic search for contextual OSM features near TM Nxera's known plot."""
+
 import geopandas as gpd
 import pandas as pd
 

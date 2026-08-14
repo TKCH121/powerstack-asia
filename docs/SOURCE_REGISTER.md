@@ -1,56 +1,37 @@
 # Source Register
 
-## Malaysian planning / zoning
+This register identifies source families. Preserve the exact URL, publication date, accessed date where relevant, and `fact_type` with every curated record.
 
-**PLANMalaysia / MyGeoportal**
-Johor zoning feature layer:
-`https://mygos.mygeoportal.gov.my/gisserver/rest/services/Fundamental_GDC/Demarcation_SemenanjungMsia/MapServer/50`
+## Planning and administrative geography
 
-Relevant public fields include `gunatanah1`, `gunatanah2`, `gunatanah3`, area and data year.
-The service advertises JSON and GeoJSON query support.
+**PLANMalaysia iPLAN zoning**
+`https://scharms.planmalaysia.gov.my/arcgis/rest/services/iPLAN/GTzoning_01/MapServer/0/query`
 
-## Malaysian power system
+Used for Johor zoning geometry and source fields. District-boundary cleaning uses PLANMalaysia’s `SCHARMS/Mobil_DataAsas/MapServer/2` layer. These sources establish planning/map records, not power capacity.
 
-**Single Buyer Malaysia**
-Demand:
-`https://www.singlebuyer.com.my/market/market-data/demand`
+## Power-system context and connection process
 
-System Marginal Price:
-`https://www.singlebuyer.com.my/market/market-data/system-marginal-price`
+- [Single Buyer Malaysia demand](https://www.singlebuyer.com.my/market/market-data/demand)
+- [Energy Commission MyEnergyStats](https://myenergystats.st.gov.my/dashboard)
+- [TNB Electricity Supply Application Handbook](https://www.tnb.com.my/esah/supply-application/)
 
-**MyEnergyStats / Energy Commission**
-`https://myenergystats.st.gov.my/dashboard`
+Use these for public context, process, and explicitly published facts only.
 
-Use for system capacity and generation/license records.
+## Project and connection evidence
 
-## TNB connection rules
+- [TNB / GDS announcement](https://www.tnb.com.my/announcements/tnb-gds-collaboration-signals-positive-growth-in-foreign-investment-for-dcm)
+- [Yondr Johor announcement](https://www.yondrgroup.com/newsroom/press-release/yondr-group-powers-up-its-first-data-center-campus-in-malaysia-within-two-years-of-market-entry/)
+- [TM Nxera supply announcement](https://www.tmnxera.com/news-insights/latest-from-tm-nxera/tm-nxera-secures-280mw-to-power-ai-ready-green-data-centre-campus-in-johor)
 
-**TNB Electricity Supply Application Handbook / electricity system**
-`https://www.tnb.com.my/esah/supply-application/`
+Manual CSV rows retain the specific source that supports each fact. A secured-supply statement is not evidence of spare capacity elsewhere.
 
-Use for voltage classes, application process and substation/connection requirements.
+## Current-state grid topology
 
-## Seed project evidence
+**OpenStreetMap via Geofabrik regional extract**
+`https://download.geofabrik.de/asia/malaysia-singapore-brunei-latest.osm.pbf`
 
-**TNB / GDS**
-`https://www.tnb.com.my/announcements/tnb-gds-collaboration-signals-positive-growth-in-foreign-investment-for-dcm`
+The canonical ingestion route is Geofabrik plus local Osmium filtering. OSM is a public/crowdsourced topology source; map features are `VERIFIED` public-map records, while distances derived from them are `DERIVED`. Neither establishes utility-confirmed headroom.
 
-Verified public facts include:
-- ESA sealed October 2022
-- Nusajaya Tech Park, Johor Bahru
-- interim 16 MW targeted to allow operations in July 2023
-- planned increase to 85.5 MW within 2023
+## Historical feature warning
 
-**Telekom Malaysia / TM Nxera**
-`https://tm.com.my/news/tm_nxera_green_data_centre_campus`
-
-Verified public facts include:
-- multi-year electricity supply agreement with TNB
-- 280 MW secured
-- Iskandar Puteri, Johor
-- first commercial operations scheduled to begin in 2026
-
-## Grid geometry
-
-For later work, OpenStreetMap/OpenInfraMap can be used as a non-authoritative public topology source.
-Do not treat crowdsourced topology as utility-confirmed capacity.
+Record infrastructure as `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, or `NOT_FOUND` where supported. In particular, the Yondr/Sedenak campus substation was project-enabled; its presence in today’s OSM cannot be used as an ex-ante predictor.

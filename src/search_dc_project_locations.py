@@ -1,3 +1,5 @@
+"""Diagnostic OSM location search; it does not establish project geometry."""
+
 import shutil
 import subprocess
 

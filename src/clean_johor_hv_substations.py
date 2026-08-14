@@ -1,12 +1,10 @@
-import hashlib
-import re
-
 import geopandas as gpd
 import pandas as pd
 import requests
 import truststore
 
 from config import PROCESSED_DIR
+from powerstack_utils import geometry_hash
 
 
 truststore.inject_into_ssl()
@@ -71,16 +69,6 @@ def normalize_text(value):
         .strip()
         .lower()
     )
-
-
-def geometry_hash(geometry):
-
-    if geometry is None:
-        return None
-
-    return hashlib.sha256(
-        geometry.normalize().wkb
-    ).hexdigest()
 
 
 def normalize_operator(value):

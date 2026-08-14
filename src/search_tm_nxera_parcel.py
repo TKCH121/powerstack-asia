@@ -1,3 +1,5 @@
+"""Diagnostic zoning search; results are not an authoritative TM Nxera parcel."""
+
 import json
 
 import geopandas as gpd

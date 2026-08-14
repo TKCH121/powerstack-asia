@@ -1,48 +1,44 @@
-# PowerStack SiteFinder v0.1 — Project Specification
+# PowerStack SiteFinder v0.2 — Project Specification
 
 ## Objective
 
-Create a public-data decision engine for Johor that eventually estimates:
+Estimate whether a candidate site has a **bankable >=100 MW power pathway by a specified energisation date**, using public evidence. The pathway may include grid infrastructure that can realistically be developed concurrently with the data centre.
 
-`P(viable >=100 MW power pathway within 48 months)`
+This is an evidence database and research tool, not an investment-grade power-flow or confidential-capacity model.
 
-The first version is an evidence database and rules-based research tool, not an investment-grade grid model.
+## Core distinction
 
-## Users
+Power readiness is not simply proximity to an existing substation. A pathway may be:
 
-Initial hypothetical users:
-- data-centre developers
-- infrastructure investors/lenders
-- land/industrial-park developers
-- renewable/BESS developers
+1. Existing suitable connection infrastructure.
+2. Extension or consumer landing station / SSU.
+3. New PMU plus line or cable works.
+4. Upstream transmission reinforcement.
+5. Phased interim-to-permanent supply.
+6. Generation, BESS, or renewable-assisted infrastructure.
 
-## First research question
+## Feature timing
 
-Can public infrastructure, planning, project, utility and construction signals distinguish projects/areas that subsequently secure large-load power from those that do not?
+- **Current-state screening** may describe mapped lines, substations, zoning, and derived proximity.
+- **Historical analysis** must use only evidence available on or before its explicit information cutoff. The prediction date is the decision/event boundary being assessed; it is not automatically the information cutoff. Project-enabled or post-decision infrastructure is not a pre-decision predictor.
+
+Pathway power quantities must identify their measure type, such as electrical supply or maximum demand. IT capacity remains a separate project attribute and must not be inserted into pathway power fields.
 
 ## MVP outputs
 
-For a project or candidate area:
-- known load / announced capacity
-- connection evidence
-- voltage evidence
-- interim/permanent-supply evidence
-- grid-reinforcement evidence
-- zoning class
-- evidence timeline
-- confidence
-- later: rules-based Power Pathway Score
-- later: ML probability
+- Source-backed project, location, connection, and grid-asset timelines.
+- Current-state site features with explicit `DERIVED` provenance.
+- A three-table historical model: pathway assessments, physical components, and dated milestones. Each independently asserted record retains its evidence status and source.
 
-## Non-goals for v0.1
+Infrastructure timing (`CURRENT_STATE`, `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, or `NOT_FOUND`) is separate from evidence classification. Explicitly verified absence uses `NOT_REQUIRED_VERIFIED`, not `NOT_FOUND`.
 
-- estimating exact confidential substation spare MW
-- real-time power-flow analysis
-- customer-private load data
-- PPA pricing engine
-- autonomous LLM research
-- full ASEAN coverage
+## Non-goals
+
+- Estimating confidential substation spare MW.
+- Real-time power-flow analysis or private load data.
+- ML, arbitrary Power Pathway Score weights, or a hard distance rule.
+- Full ASEAN coverage, autonomous research, or additional infrastructure frameworks.
 
 ## Golden rule
 
-Every factual field must be sourceable. Unknown means `NOT_FOUND`, not guessed.
+Every factual field must be sourceable and classified as `VERIFIED`, `DERIVED`, `INFERRED`, or `NOT_FOUND`.

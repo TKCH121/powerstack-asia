@@ -1,10 +1,13 @@
-import hashlib
-import re
-
 import geopandas as gpd
 import pandas as pd
 
 from config import PROCESSED_DIR
+from powerstack_utils import (
+    PROJECTED_CRS,
+    geometry_hash,
+    has_voltage,
+    nearest_feature_join,
+)
 
 
 # ============================================================
@@ -32,62 +35,6 @@ OUTPUT_CSV = (
 )
 
 
-PROJECTED_CRS = "EPSG:3375"
-
-
-# ============================================================
-# HELPERS
-# ============================================================
-
-def extract_voltages_kv(value):
-    """
-    Extract every explicitly stated voltage.
-
-    Examples:
-
-        275000;132000;33000
-            -> {275, 132, 33}
-
-        132000:33000
-            -> {132, 33}
-
-        missing
-            -> empty set
-
-    Missing voltage is never inferred.
-    """
-
-    if value is None:
-        return set()
-
-    try:
-        if pd.isna(value):
-            return set()
-    except (TypeError, ValueError):
-        pass
-
-    numbers = re.findall(
-        r"\d+",
-        str(value),
-    )
-
-    return {
-        int(number) / 1000
-        for number in numbers
-    }
-
-
-def has_voltage(
-    value,
-    target_kv,
-):
-
-    return (
-        target_kv
-        in extract_voltages_kv(value)
-    )
-
-
 def make_substation_id(
     geometry
 ):
@@ -95,14 +42,7 @@ def make_substation_id(
     Create a stable internal identifier from geometry.
     """
 
-    digest = hashlib.sha256(
-        geometry.normalize().wkb
-    ).hexdigest()
-
-    return (
-        "JHR-SS-" +
-        digest[:12].upper()
-    )
+    return "JHR-SS-" + geometry_hash(geometry)[:12].upper()
 
 
 # ============================================================
@@ -218,7 +158,7 @@ def add_nearest_substation(
     # Nearest-neighbour join
     # --------------------------------------------------------
 
-    joined = gpd.sjoin_nearest(
+    joined = nearest_feature_join(
         sites[
             [
                 "site_id",
@@ -226,35 +166,9 @@ def add_nearest_substation(
             ]
         ],
         target,
-        how="left",
-        distance_col=distance_m,
-    )
-
-    # An exact tie can produce multiple rows.
-    # Keep one deterministically.
-    sort_columns = [
-        "site_id",
-        distance_m,
-    ]
-
-    id_column = (
-        f"nearest_{label}_id"
-    )
-
-    if id_column in joined.columns:
-        sort_columns.append(
-            id_column
-        )
-
-    joined = (
-        joined
-        .sort_values(
-            sort_columns
-        )
-        .drop_duplicates(
-            subset="site_id",
-            keep="first",
-        )
+        candidate_id="site_id",
+        distance_column=distance_m,
+        tie_break_columns=(f"nearest_{label}_id",),
     )
 
     result_columns = [
@@ -428,47 +342,7 @@ def main():
         )
 
     # --------------------------------------------------------
-    # 7. Useful screening flags
-    # --------------------------------------------------------
-
-    sites[
-        "within_1km_275kv_substation"
-    ] = (
-        sites[
-            "distance_275kv_substation_km"
-        ]
-        <= 1
-    )
-
-    sites[
-        "within_5km_275kv_substation"
-    ] = (
-        sites[
-            "distance_275kv_substation_km"
-        ]
-        <= 5
-    )
-
-    sites[
-        "within_10km_275kv_substation"
-    ] = (
-        sites[
-            "distance_275kv_substation_km"
-        ]
-        <= 10
-    )
-
-    sites[
-        "within_5km_transmission_substation"
-    ] = (
-        sites[
-            "distance_transmission_substation_km"
-        ]
-        <= 5
-    )
-
-    # --------------------------------------------------------
-    # 8. Evidence classification
+    # 7. Evidence classification
     # --------------------------------------------------------
 
     sites[
@@ -487,7 +361,7 @@ def main():
     ] = "NOT_FOUND"
 
     # --------------------------------------------------------
-    # 9. Save
+    # 8. Save
     # --------------------------------------------------------
 
     sites.to_parquet(
@@ -509,7 +383,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # 10. Summary
+    # 9. Summary
     # --------------------------------------------------------
 
     print()
@@ -562,123 +436,6 @@ def main():
             f"  {label}: "
             f"{median:.2f} km"
         )
-
-    print()
-    print(
-        "275 kV substation proximity:"
-    )
-
-    print(
-        f"  within 1 km: "
-        f"{sites['within_1km_275kv_substation'].sum():,}"
-    )
-
-    print(
-        f"  within 5 km: "
-        f"{sites['within_5km_275kv_substation'].sum():,}"
-    )
-
-    print(
-        f"  within 10 km: "
-        f"{sites['within_10km_275kv_substation'].sum():,}"
-    )
-
-    # --------------------------------------------------------
-    # 11. First combined PowerStack screen
-    # --------------------------------------------------------
-
-    combined = (
-        sites[
-            (
-                sites[
-                    "calculated_area_ha"
-                ]
-                >= 10
-            )
-            &
-            (
-                sites[
-                    "distance_275kv_km"
-                ]
-                <= 5
-            )
-            &
-            (
-                sites[
-                    "distance_275kv_substation_km"
-                ]
-                <= 5
-            )
-        ]
-        .copy()
-    )
-
-    print()
-    print(
-        "FIRST COMBINED SCREEN"
-    )
-    print("-" * 70)
-
-    print(
-        "Criteria:"
-    )
-
-    print(
-        "  area >= 10 ha"
-    )
-
-    print(
-        "  mapped 275 kV line <= 5 km"
-    )
-
-    print(
-        "  mapped 275 kV substation <= 5 km"
-    )
-
-    print()
-
-    print(
-        f"Sites meeting all three: "
-        f"{len(combined):,}"
-    )
-
-    display_columns = [
-        column
-        for column in [
-            "site_id",
-            "daerah_nam",
-            "mukim_name",
-            "pbt_name",
-            "calculated_area_ha",
-            "distance_275kv_km",
-            "distance_275kv_substation_km",
-            "nearest_275kv_substation_name",
-            "nearest_275kv_substation_voltage_raw",
-        ]
-        if column in combined.columns
-    ]
-
-    print()
-
-    print(
-        combined[
-            display_columns
-        ]
-        .sort_values(
-            [
-                "distance_275kv_substation_km",
-                "calculated_area_ha",
-            ],
-            ascending=[
-                True,
-                False,
-            ],
-        )
-        .head(30)
-        .to_string(
-            index=False
-        )
-    )
 
     print()
     print(
