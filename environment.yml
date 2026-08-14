@@ -12,6 +12,9 @@ dependencies:
   - scikit-learn
   - matplotlib
   - folium
+  - truststore
+  - osmnx=2.1.1
+  - osmium-tool
   - requests
   - jupyterlab
   - ipykernel
