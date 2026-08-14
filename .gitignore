@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+env/
+.env
+
+# Local databases and generated data
+database/*.duckdb
+database/*.db
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Models / large artifacts
+models/*
+!models/.gitkeep
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

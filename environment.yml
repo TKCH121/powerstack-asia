@@ -1,0 +1,22 @@
+name: powerstack
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - geopandas
+  - shapely
+  - pyproj
+  - pyarrow
+  - scikit-learn
+  - matplotlib
+  - folium
+  - requests
+  - jupyterlab
+  - ipykernel
+  - pip
+  - pip:
+      - duckdb==1.5.5
+      - streamlit
+      - streamlit-folium
