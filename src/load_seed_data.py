@@ -32,6 +32,17 @@ def main():
     replace_from_csv(con, "connection_events", "connection_events_seed.csv")
     replace_from_csv(con, "dc_project_locations", "dc_project_locations_seed.csv")
     replace_from_csv(con, "grid_asset_events", "grid_asset_events_seed.csv")
+    replace_from_csv(con, "power_pathways", "power_pathways_seed.csv")
+    replace_from_csv(
+        con,
+        "power_pathway_components",
+        "power_pathway_components_seed.csv",
+    )
+    replace_from_csv(
+        con,
+        "power_pathway_milestones",
+        "power_pathway_milestones_seed.csv",
+    )
 
     print("\nProjects:")
     print(con.execute("SELECT * FROM dc_projects").fetchdf())
@@ -41,6 +52,20 @@ def main():
     print(con.execute("SELECT * FROM dc_project_locations").fetchdf())
     print("\nGrid asset events:")
     print(con.execute("SELECT * FROM grid_asset_events ORDER BY event_date").fetchdf())
+    print("\nPower pathways:")
+    print(con.execute("SELECT * FROM power_pathways ORDER BY pathway_id").fetchdf())
+    print("\nPower pathway components:")
+    print(
+        con.execute(
+            "SELECT * FROM power_pathway_components ORDER BY component_id"
+        ).fetchdf()
+    )
+    print("\nPower pathway milestones:")
+    print(
+        con.execute(
+            "SELECT * FROM power_pathway_milestones ORDER BY milestone_id"
+        ).fetchdf()
+    )
     con.close()
 
 if __name__ == "__main__":
