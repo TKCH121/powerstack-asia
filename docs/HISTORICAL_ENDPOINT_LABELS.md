@@ -90,6 +90,22 @@ PMU, line, cable, or project-triggered reinforcement fails
 themselves establish physical start. Unresolved construction or grid-work
 status prevents strict cohort inclusion.
 
+A later source may establish `PRE_CONSTRUCTION` or
+`PRE_PROJECT_GRID_WORKS` through positive chronology only when it identifies
+the exact project/site, states an actual first physical commencement date later
+than the prediction boundary, and is demonstrably complete for the entire
+relevant construction or project-specific grid-work scope. Package-specific
+contracts, contractor mobilisation, planned dates, approvals, tenders, designs,
+notices to proceed, and ceremonial groundbreakings cannot close the
+whole-project gate unless independent evidence establishes both scope
+completeness and actual chronology.
+
+Source silence is not evidence of absence. A package-level commencement date
+proves chronology only for that package, and unresolved alternative contractors
+or scopes leave the whole-project state `NOT_FOUND`. Later retrospective
+evidence may verify historical chronology, but it does not make later project
+facts admissible prediction-time features.
+
 `PRE_SITE_COMMITMENT` and `PRE_LAND_ACQUISITION` answer an earlier site-selection
 question and are reserved for a separate future cohort. The current label
 generator does not automate these cohort tests; they require a documented case

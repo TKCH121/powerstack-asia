@@ -25,6 +25,15 @@ Use these for public context, process, and explicitly published facts only.
 
 Manual CSV rows retain the specific source that supports each fact. A secured-supply statement is not evidence of spare capacity elsewhere.
 
+### TM Nxera / ST Dynamo historical boundary and site provenance
+
+- [Singtel SGX disclosure, 18 June 2024](https://www.singtel.com/content/dam/singtel/investorRelations/stockExchange/2024/Ann_20240618.pdf) for ST Dynamo DC and the conditional land acquisition executed on 15 June 2024
+- [Khazanah audited financial statements 2025](https://www.khazanah.com.my/wp-content/uploads/Full-Financial-Statements-2025.pdf) for the retrospective confirmation of River Retreat as seller, ST Dynamo as buyer, the 15 June 2024 SPA, approximately 41.75 acres under PTD 213429, and outstanding completion conditions at 31 December 2025
+- [Nestcon issuer disclosure, 24 February 2025](https://www.insage.com.my/ir/cmn/Announcement.aspx?NewsID=202502245000010&Symbol=0235) for the later link between ST Dynamo's Plot 4A, Edupark West infrastructure works and PTD 213429 / HSD 598990
+- [MBIP OSC planning record, 14 May 2025](https://osclb.kpkt.gov.my/takwim/meeting/35285) for the later project and 275/33 kV consumer landing-station planning record on PTD 213429
+
+Later documents may retrospectively verify that the title, project identity, and 15 June 2024 SPA existed at the historical boundary. They do not make later grid design, construction, supply agreements, or other post-boundary outcomes admissible prediction-time features. None of these sources supplies an authoritative project coordinate or polygon.
+
 ### Five-project Johor pilot
 
 **Princeton Digital Group JH1**

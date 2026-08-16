@@ -23,6 +23,7 @@ ENDPOINT_NAME = "POWER_AGREEMENT_100MW_WITHIN_48M"
 AUDITED_PROJECTS = {
     "DC-JHR-001": "RIGHT_CENSORED",
     "DC-JHR-002": "RIGHT_CENSORED",
+    "DC-JHR-003": "OBSERVED_POSITIVE",
     "DC-JHR-006": "OBSERVED_POSITIVE",
     "DC-JHR-007": "UNLABELABLE",
 }
@@ -78,6 +79,75 @@ def load_endpoint_inputs():
     return pathways, milestones, events, locations
 
 
+def validate_tm_curated_records(pathways, milestones, events, locations):
+    tm_pathways = pathways[pathways["project_id"] == "DC-JHR-003"]
+    require(len(tm_pathways) == 1, "expected one TM Nxera pathway row")
+    pathway = tm_pathways.iloc[0]
+    require(
+        pathway["prediction_date"] == "2024-06-15"
+        and pathway["prediction_date_precision"] == "DAY"
+        and pathway["prediction_context"] == "POST_SITE_COMMITMENT",
+        "TM Nxera must use the verified binding-site-commitment boundary",
+    )
+    require(
+        pathway["information_cutoff_date"] == "2024-06-15"
+        and pathway["information_cutoff_date_precision"] == "DAY",
+        "TM Nxera must use the 15 June 2024 information cutoff",
+    )
+    require(
+        pd.isna(pathway["target_power_mw"])
+        and pathway["target_power_measure_type"] == "NOT_FOUND"
+        and pathway["target_power_mw_qualifier"] == "NOT_FOUND"
+        and pd.isna(pathway["ultimate_power_mw"])
+        and pathway["ultimate_power_measure_type"] == "NOT_FOUND"
+        and pathway["ultimate_power_mw_qualifier"] == "NOT_FOUND"
+        and pathway["pathway_type"] == "NOT_FOUND",
+        "TM Nxera must not retain post-cutoff power or pathway features",
+    )
+
+    spa_events = events[events["event_id"] == "EVT-JHR-025"]
+    require(len(spa_events) == 1, "expected one TM Nxera SPA event")
+    spa_event = spa_events.iloc[0]
+    require(
+        spa_event["project_id"] == "DC-JHR-003"
+        and spa_event["event_type"] == "LAND_ACQUISITION_SPA"
+        and spa_event["event_date"] == "2024-06-15"
+        and spa_event["date_precision"] == "DAY"
+        and spa_event["fact_type"] == "VERIFIED"
+        and pd.isna(spa_event["supply_mw"]),
+        "TM Nxera SPA event semantics must remain source-backed and power-free",
+    )
+
+    spa_milestones = milestones[
+        milestones["milestone_id"] == "PPM-JHR-003-002"
+    ]
+    require(len(spa_milestones) == 1, "expected one TM Nxera SPA milestone")
+    spa_milestone = spa_milestones.iloc[0]
+    require(
+        spa_milestone["pathway_id"] == "PP-JHR-003"
+        and spa_milestone["milestone_type"] == "LAND_ACQUISITION_SPA"
+        and spa_milestone["milestone_status"] == "SIGNED"
+        and spa_milestone["milestone_date"] == "2024-06-15"
+        and spa_milestone["date_precision"] == "DAY"
+        and spa_milestone["connection_event_id"] == "EVT-JHR-025"
+        and spa_milestone["fact_type"] == "VERIFIED"
+        and pd.isna(spa_milestone["power_mw"])
+        and spa_milestone["power_measure_type"] == "NOT_FOUND"
+        and spa_milestone["power_mw_qualifier"] == "NOT_FOUND",
+        "TM Nxera SPA milestone semantics must remain source-backed and power-free",
+    )
+
+    tm_locations = locations[locations["project_id"] == "DC-JHR-003"]
+    require(len(tm_locations) == 1, "expected one TM Nxera location row")
+    location = tm_locations.iloc[0]
+    require(
+        location["location_precision"] == "EXACT_PLOT_ID_NO_GEOMETRY"
+        and pd.isna(location["latitude"])
+        and pd.isna(location["longitude"]),
+        "TM Nxera must retain the exact-title-without-geometry classification",
+    )
+
+
 def validate_audited_projects(labels, milestones):
     endpoint_rows = labels[labels["endpoint_name"] == ENDPOINT_NAME]
     audited = endpoint_rows[
@@ -85,7 +155,7 @@ def validate_audited_projects(labels, milestones):
     ].set_index("project_id")
 
     require(len(labels) == 40, "expected 40 project/endpoint rows")
-    require(len(audited) == 4, "expected all four audited projects")
+    require(len(audited) == 5, "expected all five audited projects")
     for project_id, expected_state in AUDITED_PROJECTS.items():
         actual_state = audited.loc[project_id, "label_state"]
         require(
@@ -97,8 +167,27 @@ def validate_audited_projects(labels, milestones):
         audited[audited["label_state"] == "OBSERVED_POSITIVE"].index
     )
     require(
-        positives == {"DC-JHR-006"},
-        "Digital Halo must be the only strict positive among the audited four",
+        positives == {"DC-JHR-003", "DC-JHR-006"},
+        "TM Nxera and Digital Halo must be the strict audited positives",
+    )
+    require(
+        audited.loc["DC-JHR-003", "qualifying_record_id"]
+        == "PPM-JHR-003-001",
+        "TM Nxera must qualify through its typed 280 MW agreement milestone",
+    )
+    require(
+        audited.loc["DC-JHR-003", "prediction_date"] == "2024-06-15"
+        and audited.loc["DC-JHR-003", "prediction_date_precision"] == "DAY",
+        "TM Nxera must use the verified 15 June 2024 site-commitment boundary",
+    )
+    require(
+        not bool(audited.loc["DC-JHR-003", "electrical_target_known"]),
+        "TM Nxera must not retain the later 280 MW as a prediction-time target",
+    )
+    require(
+        audited.loc["DC-JHR-003", "training_eligibility"]
+        == "CALIBRATION_ONLY",
+        "TM Nxera must remain calibration-only without usable geometry/spatial features",
     )
     require(
         audited.loc["DC-JHR-006", "qualifying_record_id"]
@@ -204,6 +293,7 @@ def main():
 
     validate_interval_rules()
     pathways, milestones, events, locations = load_endpoint_inputs()
+    validate_tm_curated_records(pathways, milestones, events, locations)
     labels = build_labels(EVALUATION_DATE)
     audited = validate_audited_projects(labels, milestones)
     validate_no_pathway_mw_fallback(
