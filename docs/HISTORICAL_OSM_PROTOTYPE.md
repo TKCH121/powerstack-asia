@@ -164,21 +164,27 @@ do not pass a containing parcel to the current point extractor.
 
 ## Existing-project spatial eligibility
 
-This classification uses only `dc_project_locations_seed.csv`:
+This classification uses `dc_project_locations_seed.csv` together with the
+separately curated `dc_project_geometries_seed.geojson` where present:
 
 | Project | Classification | Reason |
 |---|---|---|
 | DC-JHR-001 GDS | `PROXY_ONLY` | Stored Nusajaya Tech Park representative point, not the parcel. |
 | DC-JHR-002 Yondr / Vantage | `PROXY_ONLY` | Stored STeP East park-section representative point, not the campus. |
-| DC-JHR-003 TM Nxera | `LOCATION_NOT_SUFFICIENT` | Exact plot identifier but no authoritative geometry. |
+| DC-JHR-003 TM Nxera | `BOUNDED_PARCEL_TIER_B_DEFERRED` | Official MBIP project-linked polygon, but its source area is 10.92% below the title area. Tier B feature engineering remains unimplemented. |
 | DC-JHR-004 PDG JH1 | `READY_FOR_HISTORICAL_SPATIAL_EXTRACTION` | Official site coordinate stored. |
 | DC-JHR-005 Bridge MY07 | `LOCATION_NOT_SUFFICIENT` | Ulu Tiram locality only. |
-| DC-JHR-006 Digital Halo / Nanda | `LOCATION_NOT_SUFFICIENT` | Exact title but no stored polygon or coordinate. |
+| DC-JHR-006 Digital Halo / Nanda | `TIER_A_GEOMETRY_READY` | Official MBIP project polygon tied to the exact PTD; source area reconciles within 0.34% and primary corporate evidence supports whole-title project use. This does not by itself satisfy the separate construction/grid-work cohort gates. |
 | DC-JHR-007 YTL | `LOCATION_NOT_SUFFICIENT` | Campus locality only. |
 | DC-JHR-008 STT | `LOCATION_NOT_SUFFICIENT` | Industrial park only; no stored project coordinate. |
 
 Do not manufacture centroids for the six projects without sufficient site
 geometry. Proxy runs, if later approved, must remain clearly labelled.
+
+Digital Halo historical extraction was not run during the geometry-baseline
+step. `PRE_CONSTRUCTION` and `PRE_PROJECT_GRID_WORKS` remain `NOT_FOUND` at the
+11 June 2024 site-commitment boundary, so the locked training gate stops before
+OSM extraction despite the Tier A polygon.
 
 ## Remaining limitations
 

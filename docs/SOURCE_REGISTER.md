@@ -54,10 +54,43 @@ The two agreement quantities are not additive. No MY06 infrastructure fact is tr
 
 **Digital Halo JHB1 / Nanda Digital**
 
-- [Crescendo Bursa announcement, 12 July 2024](https://www.bursamalaysia.com/market_information/announcements/company_announcement/announcement_details?ann_id=3463785) for the Nanda Digital replacement SPA and project-vehicle relationship
+- [Crescendo Bursa announcement, 11 June 2024](https://www.bursamalaysia.com/market_information/announcements/company_announcement/announcement_details?ann_id=3455222) for the conditional Initial SPA between PID and Digital Halo over H.S.(D) 629092 / PTD 227197. This is the earliest verified binding site commitment.
+- [Crescendo Bursa announcement, 12 July 2024](https://www.bursamalaysia.com/market_information/announcements/company_announcement/announcement_details?ann_id=3463785) for the Deed of Revocation and concurrent substitute SPA with wholly owned Nanda Digital. The substitution does not reset time zero.
 - [Crescendo shareholder circular](https://crescendo.com.my/core-files/uploads/2024/08/CCB-Circular-Proposals-22-August-2024.pdf) for the exact land title and later detailed disclosure
 - [Partners Group acquisition announcement, 13 May 2025](https://www.partnersgroup.com/en/news-and-views/press-releases/investment-news/detail?news_id=cec108f9-f5fe-445b-9f9b-2adcb7bbc95a) for later ownership and disclosed power/permit status
 - [TNB 3Q FY2025 briefing](https://www.tnb.com.my/assets/quarterly_results/Analyst_Briefing_3QFY2025_Deck.pdf) for the post-boundary 150 MW ESA
+
+The 11 June filing describes an executed conditional SPA and exact site, not an
+unconditional land-transfer completion. The August circular states that the
+whole property was vacant and unoccupied at its later reporting date and
+describes future/expected vendor works. It does not state a scope-complete first
+physical commencement date for all data-centre/enabling works or all dedicated
+grid works. Both strict chronology gates therefore remain `NOT_FOUND`.
+
+### Project geometry baseline
+
+- [MBIP GTSemasa layer](https://onemap.mbip.gov.my/arcgis/rest/services/MBIP/GTSemasa/MapServer/0) for official project-linked planning polygons queried by exact `no_ptd`
+- [PLANMalaysia iPLAN Johor lot layer](https://scharms.planmalaysia.gov.my/arcgis/rest/services/iPLAN/LOT_01/MapServer/0) for candidate-lot/UPI cross-checks
+
+`GEO-JHR-006-001` preserves MBIP OBJECTID `344541` and GlobalID
+`{7B9866AA-C0D8-4B74-9C16-E7444E866EB5}` for PTD 227197. Its classification is
+`AUTHORITATIVE_PROJECT_POLYGON`: MBIP directly links the polygon to Nanda
+Digital and the exact PTD, its source area is within 0.34% of the title area,
+and the Crescendo circular supports whole-title project use. This is official
+MBIP planning geometry, not JUPEM-certified cadastral geometry. Title succession
+and effective date remain `NOT_FOUND`.
+
+`GEO-JHR-003-001` preserves MBIP OBJECTID `377272` and GlobalID
+`{641E45BF-AE73-4D37-AC91-8B36A323D500}` for PTD 213429. It remains
+`BOUNDED_PARCEL` because the source polygon area is 10.92% below the stated
+title area. It must not be promoted to exact TM Nxera project geometry. The
+MBIP `no_lot` values for both projects are candidate fields only; independent
+iPLAN area checks do not support treating them as verified successor lots.
+
+The curated geometries and their source manifest are in
+`data/manual/dc_project_geometries_seed.geojson` and
+`data/manual/dc_project_geometry_sources_seed.csv`. Raw API snapshots, if
+retained, belong under ignored `data/raw/` paths.
 
 **YTL Green Data Center Park / Sea Phase One**
 

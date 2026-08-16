@@ -18,6 +18,38 @@ Dated electricity and project events: `event_id`, `project_id`, date/precision, 
 
 Project location evidence: coordinates when supported, location precision/reference, source, fact type, and notes. Missing coordinates must remain missing.
 
+### Curated project geometry files
+
+`data/manual/dc_project_geometries_seed.geojson` stores source-backed project
+polygons separately from the point/proxy-oriented `dc_project_locations` table.
+It is not loaded into DuckDB in v1. Each feature preserves a stable
+`geometry_id`, project join, evidence classification, source feature identifiers,
+title and PTD references, source/stored CRS, source and independently calculated
+areas, effective-date status, retrieval date, geometry hash, and provenance.
+
+`data/manual/dc_project_geometry_sources_seed.csv` is the many-to-one source
+manifest for those geometries. It keeps primary geometry evidence separate from
+title/project-use evidence and candidate-lot cross-checks. Raw API responses do
+not belong in either manual file; retained downloads belong under ignored
+`data/raw/` paths.
+
+Current geometry classifications are:
+
+- `AUTHORITATIVE_PROJECT_POLYGON`: an authoritative project-linked polygon plus
+  independent evidence that the represented land is the project site. It does
+  not imply JUPEM cadastral certification.
+- `BOUNDED_PARCEL`: an official project-linked boundary that is not accepted as
+  the exact project/title polygon because its completeness or area reconciliation
+  remains unresolved.
+
+An unknown title successor or effective date remains `NOT_FOUND`; a candidate
+lot must not be promoted to a final surveyed lot without a documented title
+chain. Validate the files with:
+
+```powershell
+python src/validate_dc_project_geometries.py
+```
+
 ### `grid_asset_events`
 
 Project-linked asset events: asset identity/type/voltage, dated event, and `status_relative_to_project_decision`. Use this to distinguish `PRE_EXISTING_VERIFIED`, `PROJECT_ENABLED`, `POST_DECISION`, and `NOT_FOUND` when evidence supports them.

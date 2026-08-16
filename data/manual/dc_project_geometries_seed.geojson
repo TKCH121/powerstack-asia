@@ -1,0 +1,105 @@
+{
+  "type": "FeatureCollection",
+  "name": "dc_project_geometries_seed",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "GEO-JHR-003-001",
+      "properties": {
+        "geometry_id": "GEO-JHR-003-001",
+        "project_id": "DC-JHR-003",
+        "geometry_classification": "BOUNDED_PARCEL",
+        "source_authority": "Majlis Bandaraya Iskandar Puteri (MBIP)",
+        "source_service": "MBIP/GTSemasa",
+        "source_layer": "0",
+        "source_feature_id": "377272",
+        "source_global_id": "{641E45BF-AE73-4D37-AC91-8B36A323D500}",
+        "ptd": "213429",
+        "title_reference": "H.S.(D) 598990",
+        "candidate_lot": "193621",
+        "upi": null,
+        "title_succession_status": "NOT_FOUND",
+        "original_crs": "EPSG:3857",
+        "stored_crs": "EPSG:4326",
+        "calculated_area_crs": "EPSG:3375",
+        "source_area_m2": 150502.53536917,
+        "calculated_area_m2": 149363.75385703647,
+        "title_area_m2": 168956.2556352,
+        "area_difference_pct": -10.922188229522655,
+        "calculated_area_difference_pct": -11.596197906081951,
+        "effective_date": null,
+        "effective_date_precision": null,
+        "effective_date_status": "NOT_FOUND",
+        "retrieval_date": "2026-08-16",
+        "fact_type": "VERIFIED",
+        "source_url": "https://onemap.mbip.gov.my/arcgis/rest/services/MBIP/GTSemasa/MapServer/0/query?where=no_ptd%3D%27213429%27&outFields=%2A&returnGeometry=true&outSR=4326&f=geojson",
+        "geometry_hash": "20a28fb23bb96e42f36d3690e48e848d7796d808873e3ebdd403800b703a9769",
+        "notes": "Official MBIP planning-GIS polygon linked to PTD 213429 and ST Dynamo DC Sdn Bhd. It is not JUPEM-certified cadastral geometry. The MBIP source-area field is 10.92% below the approximately 41.75-acre title area, while the stored polygon calculates 11.60% below it in EPSG:3375. Treat only as BOUNDED_PARCEL. Candidate lot 193621 is not a verified successor lot; title succession and geometry effective date remain NOT_FOUND."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [103.61996662130791, 1.435990884230163],
+            [103.6198061795032, 1.4355568189611239],
+            [103.61964573769853, 1.435122753609696],
+            [103.61931603353138, 1.4340235333945581],
+            [103.619046695253, 1.4331954301090304],
+            [103.61822833002915, 1.4306968001827161],
+            [103.61983986722468, 1.4298590229541799],
+            [103.62226087093285, 1.43488267242187],
+            [103.61996662130791, 1.435990884230163]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GEO-JHR-006-001",
+      "properties": {
+        "geometry_id": "GEO-JHR-006-001",
+        "project_id": "DC-JHR-006",
+        "geometry_classification": "AUTHORITATIVE_PROJECT_POLYGON",
+        "source_authority": "Majlis Bandaraya Iskandar Puteri (MBIP)",
+        "source_service": "MBIP/GTSemasa",
+        "source_layer": "0",
+        "source_feature_id": "344541",
+        "source_global_id": "{7B9866AA-C0D8-4B74-9C16-E7444E866EB5}",
+        "ptd": "227197",
+        "title_reference": "H.S.(D) 629092",
+        "candidate_lot": "150353",
+        "upi": null,
+        "title_succession_status": "NOT_FOUND",
+        "original_crs": "EPSG:3857",
+        "stored_crs": "EPSG:4326",
+        "calculated_area_crs": "EPSG:3375",
+        "source_area_m2": 82530.437732985,
+        "calculated_area_m2": 81905.19680153581,
+        "title_area_m2": 82810.82297157121,
+        "area_difference_pct": -0.3385852579710136,
+        "calculated_area_difference_pct": -1.0936084650991718,
+        "effective_date": null,
+        "effective_date_precision": null,
+        "effective_date_status": "NOT_FOUND",
+        "retrieval_date": "2026-08-16",
+        "fact_type": "VERIFIED",
+        "source_url": "https://onemap.mbip.gov.my/arcgis/rest/services/MBIP/GTSemasa/MapServer/0/query?where=no_ptd%3D%27227197%27&outFields=%2A&returnGeometry=true&outSR=4326&f=geojson",
+        "geometry_hash": "42c7e295cf2688143250f557111d644faa6757a4d886f37b8e5c5d3e46d10e35",
+        "notes": "Official MBIP planning-GIS polygon linked to PTD 227197 and Nanda Digital Sdn Bhd. It is not JUPEM-certified cadastral geometry. Crescendo's primary corporate evidence supports whole-title project use. The MBIP source-area field reconciles to the 20.463-acre title within -0.34%; the stored polygon calculates -1.09% in EPSG:3375. Candidate lot 150353 is not a verified successor lot; title succession and geometry effective date remain NOT_FOUND."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [103.60864079066479, 1.4464521949372042],
+            [103.60738191588015, 1.4439362457535501],
+            [103.60942726389943, 1.4428662696577526],
+            [103.60951821832194, 1.4429013619935915],
+            [103.61074089549221, 1.445326011463562],
+            [103.60864079066479, 1.4464521949372042]
+          ]
+        ]
+      }
+    }
+  ]
+}

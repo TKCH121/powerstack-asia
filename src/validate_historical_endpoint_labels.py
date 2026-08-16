@@ -45,7 +45,7 @@ def validate_interval_rules():
         "same-month prediction and agreement must remain ambiguous",
     )
 
-    digital_boundary = parse_interval("2024-07-12", "DAY")
+    digital_boundary = parse_interval("2024-06-11", "DAY")
     digital_agreement = parse_interval("2025-08", "MONTH")
     require(
         classify_timing(digital_boundary, digital_agreement, 48) == "WITHIN",
@@ -148,6 +148,76 @@ def validate_tm_curated_records(pathways, milestones, events, locations):
     )
 
 
+def validate_digital_halo_boundary(pathways, milestones, events):
+    digital_pathways = pathways[pathways["project_id"] == "DC-JHR-006"]
+    require(len(digital_pathways) == 1, "expected one Digital Halo pathway row")
+    pathway = digital_pathways.iloc[0]
+    require(
+        pathway["prediction_date"] == "2024-06-11"
+        and pathway["prediction_date_precision"] == "DAY"
+        and pathway["information_cutoff_date"] == "2024-06-11"
+        and pathway["information_cutoff_date_precision"] == "DAY"
+        and pathway["prediction_context"] == "POST_SITE_COMMITMENT",
+        "Digital Halo must use the earliest verified 11 June site commitment",
+    )
+    require(
+        pd.isna(pathway["target_power_mw"])
+        and pathway["target_power_measure_type"] == "NOT_FOUND"
+        and pathway["target_power_mw_qualifier"] == "NOT_FOUND"
+        and pd.isna(pathway["ultimate_power_mw"])
+        and pathway["ultimate_power_measure_type"] == "NOT_FOUND"
+        and pathway["ultimate_power_mw_qualifier"] == "NOT_FOUND",
+        "Digital Halo must not retain the later 150 MW as a prediction feature",
+    )
+
+    initial_events = events[events["event_id"] == "EVT-JHR-016"]
+    replacement_events = events[events["event_id"] == "EVT-JHR-026"]
+    require(len(initial_events) == 1, "expected one Digital Halo Initial SPA event")
+    require(len(replacement_events) == 1, "expected one Digital Halo replacement SPA event")
+    initial_event = initial_events.iloc[0]
+    replacement_event = replacement_events.iloc[0]
+    require(
+        initial_event["event_date"] == "2024-06-11"
+        and initial_event["event_type"] == "LAND_ACQUISITION_SPA"
+        and initial_event["fact_type"] == "VERIFIED"
+        and pd.isna(initial_event["supply_mw"]),
+        "Digital Halo Initial SPA event must be verified and power-free",
+    )
+    require(
+        replacement_event["event_date"] == "2024-07-12"
+        and replacement_event["event_type"]
+        == "REPLACEMENT_LAND_ACQUISITION_SPA"
+        and replacement_event["fact_type"] == "VERIFIED"
+        and pd.isna(replacement_event["supply_mw"]),
+        "Digital Halo replacement SPA must remain a separate later event",
+    )
+
+    initial_milestones = milestones[
+        milestones["milestone_id"] == "PPM-JHR-006-001"
+    ]
+    replacement_milestones = milestones[
+        milestones["milestone_id"] == "PPM-JHR-006-004"
+    ]
+    require(len(initial_milestones) == 1, "expected one Initial SPA milestone")
+    require(len(replacement_milestones) == 1, "expected one replacement SPA milestone")
+    initial_milestone = initial_milestones.iloc[0]
+    replacement_milestone = replacement_milestones.iloc[0]
+    require(
+        initial_milestone["milestone_date"] == "2024-06-11"
+        and initial_milestone["connection_event_id"] == "EVT-JHR-016"
+        and initial_milestone["fact_type"] == "VERIFIED"
+        and pd.isna(initial_milestone["power_mw"]),
+        "Digital Halo Initial SPA milestone semantics changed",
+    )
+    require(
+        replacement_milestone["milestone_date"] == "2024-07-12"
+        and replacement_milestone["connection_event_id"] == "EVT-JHR-026"
+        and replacement_milestone["fact_type"] == "VERIFIED"
+        and pd.isna(replacement_milestone["power_mw"]),
+        "Digital Halo replacement SPA milestone semantics changed",
+    )
+
+
 def validate_audited_projects(labels, milestones):
     endpoint_rows = labels[labels["endpoint_name"] == ENDPOINT_NAME]
     audited = endpoint_rows[
@@ -195,9 +265,16 @@ def validate_audited_projects(labels, milestones):
         "Digital Halo must qualify through its typed 150 MW ESA milestone",
     )
     require(
+        audited.loc["DC-JHR-006", "prediction_date"] == "2024-06-11"
+        and audited.loc["DC-JHR-006", "prediction_date_precision"] == "DAY"
+        and audited.loc["DC-JHR-006", "elapsed_days_or_months"]
+        == "416-446 days",
+        "Digital Halo must retain the corrected boundary and conservative interval",
+    )
+    require(
         audited.loc["DC-JHR-006", "training_eligibility"]
         == "CALIBRATION_ONLY",
-        "Digital Halo must remain calibration-only pending cohort/geometry closure",
+        "Digital Halo must remain calibration-only pending chronology/spatial closure",
     )
     require(
         audited.loc["DC-JHR-001", "label_state"] != "OBSERVED_NEGATIVE",
@@ -294,6 +371,7 @@ def main():
     validate_interval_rules()
     pathways, milestones, events, locations = load_endpoint_inputs()
     validate_tm_curated_records(pathways, milestones, events, locations)
+    validate_digital_halo_boundary(pathways, milestones, events)
     labels = build_labels(EVALUATION_DATE)
     audited = validate_audited_projects(labels, milestones)
     validate_no_pathway_mw_fallback(

@@ -159,9 +159,25 @@ Supervised historical analysis keeps two time domains separate:
   agreement quantities, disclosures, and project-enabled infrastructure must
   not enter the feature set.
 
-For Digital Halo, the prediction boundary is 12 July 2024 and the verified 150
-MW agreement occurred in 2025. The 150 MW establishes a possible positive
-outcome; it is not a July 2024 predictive feature.
+For Digital Halo, the prediction boundary is 11 June 2024, when PID and Digital
+Halo executed the conditional Initial SPA for the exact title. The 12 July Deed
+of Revocation and concurrent substitute SPA with wholly owned Nanda Digital did
+not reset time zero. The verified 150 MW agreement occurred in August 2025 and
+establishes the observed outcome; it is not a June 2024 predictive feature.
+
+The curated Digital Halo polygon satisfies the Tier A geometry requirement, but
+the strict cohort remains `CALIBRATION_ONLY`: whole-project physical construction
+and project-specific grid-work status at 11 June 2024 remain `NOT_FOUND` under
+the scope-complete chronology rule. The historical OSM extractor must not be run
+for training eligibility until both gates are resolved.
+
+The current label generator reads point/proxy eligibility from
+`dc_project_locations`; it does not load the separate manual GeoJSON. Its derived
+`location_usable` field therefore remains false until polygon integration is
+implemented. That implementation status does not change the evidence review:
+`GEO-JHR-006-001` is the curated Tier A project geometry, while historical
+spatial features remain unavailable because extraction stopped at the chronology
+gate.
 
 ## Date precision and negatives
 
