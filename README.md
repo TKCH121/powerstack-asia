@@ -67,7 +67,24 @@ The ignored output is written to
 from verified evidence and are never entered manually in seed CSVs. See
 `docs/HISTORICAL_ENDPOINT_LABELS.md` for event mappings, censoring, and negative
 label safeguards. The 100 MW endpoint records a qualifying power agreement; it
-does not represent physical commissioning, energisation, or delivery.
+does not represent physical commissioning, energisation, or delivery. It is a
+fixed-threshold outcome: only MW explicitly attributed to the qualifying
+agreement may determine the label, and that later outcome must never be included
+in features reconstructed at the prediction date. A separate pathway-level MW,
+IT capacity, portfolio total, or later commissioning quantity cannot fill a
+missing agreement quantity.
+
+The Historical Training Methodology v1 cohort is post-site-commitment but
+pre-ESA, pre-construction, and pre-project-grid-works. Its question is: once a
+specific site had been committed, how credible was securing a project-specific
+>=100 MW power agreement within 48 months? Earlier pre-site-commitment screening
+is a separate future cohort.
+
+Run the lightweight endpoint regressions after generating labels:
+
+```powershell
+python src/validate_historical_endpoint_labels.py
+```
 
 ## Current boundary
 

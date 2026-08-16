@@ -29,6 +29,8 @@ Use four-space Python indentation, `snake_case`, `UPPER_SNAKE_CASE` constants, `
 
 Do not silently alter manual evidence CSVs. Historical analysis must use information available as of its prediction date; project-enabled infrastructure is not a pre-decision predictor. Keep `fact_type` separate from `infrastructure_timing`, and use `NOT_REQUIRED_VERIFIED` only for explicitly verified absence. Do not add ML models, capacity claims, arbitrary pathway-score weights, or hard proximity rules.
 
+For `POWER_AGREEMENT_100MW_WITHIN_48M`, require the qualifying agreement milestone itself to carry a verified, permitted electrical measure of at least 100 MW. Never join a separate pathway-level value, IT capacity, portfolio total, or later commissioning quantity to an unquantified agreement.
+
 ## Validation and Review
 
-There is no test suite. Run `python src/check_setup.py`, reload the seed database after schema changes, and validate geospatial row counts, CRS, required columns, and sample geometries. PRs should state affected sources, commands run, data/schema effects, and screenshots for UI changes.
+There is no test framework. Run `python src/check_setup.py`, reload the seed database after schema changes, and validate geospatial row counts, CRS, required columns, and sample geometries. After endpoint changes, run `python src/build_historical_endpoint_labels.py` and `python src/validate_historical_endpoint_labels.py`. PRs should state affected sources, commands run, data/schema effects, and screenshots for UI changes.

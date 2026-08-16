@@ -118,6 +118,50 @@ distances and a disposable local Geofabrik/Osmium subset for stable primitive
 IDs. Synthetic Osmium `area/...` records are excluded. Canonical files are never
 written.
 
+## Historical-training geometry contract
+
+Strict historical training recognizes two potential geometry tiers. Tier B is
+methodology only and is not implemented by the current extractor.
+
+### Tier A — exact project geometry
+
+Accepted evidence is:
+
+- `AUTHORITATIVE_PROJECT_POLYGON`
+- `AUTHORITATIVE_PROJECT_POINT`
+- `REPRODUCIBLY_DERIVED_PROJECT_GEOMETRY`
+
+A reproducibly derived geometry must start from an authoritative project or
+cadastral artifact, document its CRS and transformation, retain an error or
+residual measure, and be independently repeatable. A park point, geocoded
+address, Google Maps pin, parent-parcel centroid, or current infrastructure
+location is not project geometry.
+
+Tier A may support geometry-to-asset distances, nearest historical primitive
+IDs, voltage/lifecycle-specific inventory counts, fixed-radius counts, and
+intersections. Geometry type remains part of the feature definition; a project
+polygon and an authoritative site point are not silently treated as the same
+measurement.
+
+### Tier B — bounded containing parcel
+
+Tier B requires an authoritative parcel polygon, verified project containment,
+and evidence that the parcel boundary was valid at the historical cutoff. The
+exact project footprint remains unknown. Do not substitute the parcel centroid.
+
+Permitted future outputs are intervals and bounds, including:
+
+- `distance_min` and `distance_max`
+- `possible_within_radius`
+- `guaranteed_within_radius`
+- minimum and maximum possible inventory counts
+
+An interval is not collapsed to a midpoint. It is unusable when the parcel
+spans materially different grid environments or the bounds cannot preserve a
+meaningful proximity classification. Radius sets and any interval-width rule
+must be fixed before outcome analysis. Tier B feature engineering is deferred;
+do not pass a containing parcel to the current point extractor.
+
 ## Existing-project spatial eligibility
 
 This classification uses only `dc_project_locations_seed.csv`:

@@ -43,6 +43,14 @@ One assessment envelope per project and prediction date:
 
 Power MW is distinct from IT capacity recorded in `dc_projects`. Its measure type records whether the source describes electrical supply, maximum demand, contracted capacity, or connection capacity. Do not convert qualified or missing values into invented exact numbers.
 
+Pathway-level power values describe the assessment envelope. They do not, by
+themselves, establish the quantity covered by an ESA or other power agreement.
+`POWER_AGREEMENT_100MW_WITHIN_48M` may use only a qualifying `VERIFIED`
+agreement milestone whose own `power_mw`, `power_measure_type`, and
+`power_mw_qualifier` explicitly establish at least 100 MW. A later project-level
+maximum demand or commissioning quantity cannot be joined to an earlier
+unquantified agreement merely because both concern the same pathway.
+
 `prediction_date` and `information_cutoff_date` are not interchangeable. A historical outcome may occur at the prediction boundary, while model inputs must be limited to information on or before the independently established cutoff. This separation prevents project-enabled or post-decision infrastructure from leaking into ex-ante analysis.
 
 ### `power_pathway_components`
@@ -70,6 +78,11 @@ One source-backed milestone per row. Fields cover milestone type/status, date an
 - `power_mw_qualifier`: `EXACT`, `APPROXIMATE`, `GREATER_THAN`, `LESS_THAN`, or `NOT_FOUND`
 
 When `power_mw` is null, both semantic fields must be `NOT_FOUND`; when it is populated, neither may be `NOT_FOUND`. An ESA milestone does not by itself establish that its quantity is `ELECTRICAL_SUPPLY`; use the source's stated meaning.
+
+For strict agreement endpoints, attribution is row-level: project/pathway,
+agreement type and status, date, typed quantity, qualifier, `VERIFIED` evidence,
+and source must be represented by the same source-backed milestone. This rule
+does not change the table schema.
 
 ### Evidence versus timing
 

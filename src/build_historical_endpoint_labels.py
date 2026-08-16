@@ -126,8 +126,6 @@ def add_months(value: date, months: int) -> date:
 
 def classify_timing(prediction, event, horizon_months):
     """Classify timing without resolving interval dates to assumed days."""
-    if prediction.raw == event.raw and prediction.precision == event.precision:
-        return "WITHIN"
     if event.end < prediction.start:
         return "BEFORE"
     if event.start <= prediction.end:
@@ -316,7 +314,7 @@ def excluded_evidence_note(milestones, events, pathway_id, project_id, kind):
         ]
     )
     notes = []
-    if kind == "ESA" and (
+    if kind in {"ESA", "POWER_AGREEMENT_100MW"} and (
         "POWER_PARTNERSHIP" in milestone_types
         or "ESA_OR_POWER_PARTNERSHIP" in event_types
     ):
@@ -348,19 +346,18 @@ def explicit_negative_candidate(kind, candidates, timings):
 
 
 def training_eligibility(
-    kind,
     label_state,
     prediction_ok,
     location_ok,
     spatial_ok,
-    electrical_target_known,
 ):
+    """Assess eligibility using labels and prediction-time features only."""
+    # The fixed 100 MW threshold belongs to the outcome definition. A future
+    # project-specific-target model would add an ex-ante requested-power gate.
     if label_state not in {"OBSERVED_POSITIVE", "OBSERVED_NEGATIVE"}:
         return "NOT_READY"
     if not prediction_ok:
         return "NOT_READY"
-    if kind == "POWER_AGREEMENT_100MW" and not electrical_target_known:
-        return "CALIBRATION_ONLY"
     if location_ok and spatial_ok:
         return "TRAINING_READY_FOR_ENDPOINT"
     return "CALIBRATION_ONLY"
@@ -384,7 +381,6 @@ def evaluate_endpoint(
     spatial_ok = spatial_features_available(pathway)
     pathway_values = pathway_power_values(pathway)
     electrical_target_known = any(power_known(*value) for value in pathway_values)
-    pathway_threshold = any(reaches_100mw(*value) for value in pathway_values)
     candidates = collect_candidates(
         milestones,
         events,
@@ -392,6 +388,7 @@ def evaluate_endpoint(
         pathway.project_id,
         kind,
     )
+    agreement_threshold_note = ""
 
     if kind == "POWER_AGREEMENT_100MW":
         threshold_candidates = [
@@ -403,31 +400,21 @@ def evaluate_endpoint(
                 candidate["qualifier"],
             )
         ]
-        if not pathway_threshold and not threshold_candidates:
-            reason = (
-                "An authoritative electrical target exists, but it does not "
-                "confidently establish the required >=100 MW threshold."
-                if electrical_target_known
-                else "No project-specific authoritative >=100 MW electrical "
-                "measure is available; IT capacity and untyped event MW "
-                "cannot satisfy this endpoint."
-            )
-            return result_row(
-                pathway,
-                endpoint,
-                evaluation_date,
-                "UNLABELABLE",
-                None,
-                None,
-                prediction_ok,
-                location_ok,
-                spatial_ok,
-                electrical_target_known,
-                reason,
-                "The 100 MW power-agreement threshold is preserved rather than weakened.",
-            )
-        if not pathway_threshold:
-            candidates = threshold_candidates
+        candidates = threshold_candidates
+        if not threshold_candidates:
+            if electrical_target_known:
+                agreement_threshold_note = (
+                    "A separate pathway-level electrical value exists, but "
+                    "no qualifying agreement record explicitly attributes "
+                    ">=100 MW to that agreement; pathway values cannot "
+                    "substitute for agreement quantity."
+                )
+            else:
+                agreement_threshold_note = (
+                    "No qualifying agreement record explicitly attributes a "
+                    "typed, project-specific >=100 MW electrical quantity; "
+                    "IT capacity and untyped event MW cannot qualify."
+                )
 
     timings = {
         candidate["id"]: classify_timing(
@@ -511,6 +498,8 @@ def evaluate_endpoint(
     )
     if excluded:
         notes = f"{notes} {excluded}."
+    if agreement_threshold_note:
+        notes = f"{notes} {agreement_threshold_note}"
     return result_row(
         pathway,
         endpoint,
@@ -565,12 +554,10 @@ def result_row(
         "electrical_target_known": electrical_target_known,
         "endpoint_label_usable": label_usable,
         "training_eligibility": training_eligibility(
-            kind,
             label_state,
             prediction_ok,
             location_ok,
             spatial_ok,
-            electrical_target_known,
         ),
         "reason": reason,
         "notes": notes,
