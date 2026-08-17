@@ -69,12 +69,12 @@ The first strict cohort asks:
 > project-specific >=100 MW power agreement within 48 months?
 
 Time zero is the earliest verifiable binding commitment to the identified site.
-The required state immediately after that commitment is:
+The strict core is:
 
-- `POST_SITE_COMMITMENT`
-- `PRE_ESA`
-- `PRE_CONSTRUCTION`
-- `PRE_PROJECT_GRID_WORKS`
+```text
+POST_SITE_COMMITMENT
++ PRE_QUALIFYING_OR_EQUIVALENT_POWER_COMMITMENT
+```
 
 An executed conditional SPA, binding site-specific acquisition agreement,
 executed project lease, or exercised option may establish site commitment. A
@@ -83,33 +83,86 @@ unexercised option does not. If an earlier binding commitment is known, a later
 completion, replacement agreement, or convenient announcement cannot replace
 it as time zero.
 
-Project-specific enabling or data-centre construction at or before the boundary
-fails `PRE_CONSTRUCTION`. Physical work on a dedicated landing station, SSU,
-PMU, line, cable, or project-triggered reinforcement fails
-`PRE_PROJECT_GRID_WORKS`. Studies, applications, design, and tenders do not by
-themselves establish physical start. Unresolved construction or grid-work
-status prevents strict cohort inclusion.
+The observation is excluded when a qualifying or functionally equivalent
+binding project-specific power commitment of at least 100 MW was effective at
+or before time zero. Verified project-specific commissioning or energisation of
+at least 100 MW at or before time zero also excludes the observation because
+the outcome has already progressed beyond the endpoint.
 
-A later source may establish `PRE_CONSTRUCTION` or
-`PRE_PROJECT_GRID_WORKS` through positive chronology only when it identifies
-the exact project/site, states an actual first physical commencement date later
-than the prediction boundary, and is demonstrably complete for the entire
-relevant construction or project-specific grid-work scope. Package-specific
-contracts, contractor mobilisation, planned dates, approvals, tenders, designs,
-notices to proceed, and ceremonial groundbreakings cannot close the
-whole-project gate unless independent evidence establishes both scope
-completeness and actual chronology.
+### Functionally equivalent power commitment
+
+An arrangement is endpoint-equivalent only when all of the following are
+established:
+
+- it is attributed to the exact project/site;
+- it was legally effective or binding at or before time zero;
+- it was backed by the utility, electricity supplier, or connection provider;
+- it created an enforceable electrical supply or connection obligation;
+- it explicitly covered at least 100 MW using `ELECTRICAL_SUPPLY`,
+  `MAXIMUM_DEMAND`, `CONTRACTED_CAPACITY`, or `CONNECTION_CAPACITY` with a
+  qualifying lower-bound meaning.
+
+Examples that may qualify when all conditions are evidenced include an executed
+connection agreement, accepted binding connection offer, executed utility
+supply agreement, or works agreement that legally commits the provider to the
+specified supply or connection. A system-impact study, feasibility approval,
+non-binding reservation, contractor construction contract, tender, design,
+notice to proceed, or physical trench does not by itself establish an
+endpoint-equivalent commitment.
+
+### Prediction-time project states
+
+`PRE_CONSTRUCTION` and `PRE_PROJECT_GRID_WORKS` are no longer universal hard
+inclusion gates. They are replaced conceptually by prediction-time evidence
+states:
+
+```text
+construction_state_at_cutoff:
+  NOT_STARTED_VERIFIED
+  STARTED_VERIFIED
+  NOT_FOUND
+
+project_grid_works_state_at_cutoff:
+  NOT_STARTED_VERIFIED
+  STARTED_VERIFIED
+  NOT_FOUND
+```
+
+These values are research states and have not been added to the database
+schema. `NOT_FOUND` means the state was not established; it does not mean work
+had not started.
+
+Construction before the cutoff triggers a boundary-quality and latent-selection
+review because physical commitment may reflect non-public confidence in power.
+It does not automatically mean the power-agreement endpoint already occurred.
+Due diligence, surveys, clearing, grading, enabling works, piling, foundations,
+and permanent building works should be distinguished where evidence permits.
+
+Project-specific grid work before the cutoff triggers stricter
+endpoint-equivalence review. Studies, applications, design, tendering,
+procurement, contractor award, notice to proceed, mobilisation, physical works,
+energisation, and handover are different states. Pre-boundary work excludes the
+case only when the evidence establishes that a qualifying or functionally
+equivalent binding >=100 MW commitment already existed, or that >=100 MW was
+already commissioned or energised.
 
 Source silence is not evidence of absence. A package-level commencement date
-proves chronology only for that package, and unresolved alternative contractors
-or scopes leave the whole-project state `NOT_FOUND`. Later retrospective
-evidence may verify historical chronology, but it does not make later project
-facts admissible prediction-time features.
+establishes chronology only for that package, and unresolved alternative
+contractors or scopes leave the relevant whole-project state `NOT_FOUND`.
+Later retrospective evidence may verify historical chronology, but later
+project facts remain inadmissible as prediction-time features.
 
 `PRE_SITE_COMMITMENT` and `PRE_LAND_ACQUISITION` answer an earlier site-selection
-question and are reserved for a separate future cohort. The current label
-generator does not automate these cohort tests; they require a documented case
-review before `TRAINING_READY_FOR_ENDPOINT` can be assigned.
+question and are reserved for separate cohorts. Evidence from the current
+post-site-commitment cohort does not validate those earlier decision contexts.
+
+The current label generator does not store the two project-state variables or
+automate the functionally equivalent commitment review. Its generated
+`training_eligibility` checks label, boundary, point-location, and historical
+spatial-output fields only. Until code is updated in a later implementation
+step, strict cohort eligibility requires a documented methodology review in
+addition to generated output. Documentation and generated logic are therefore
+not yet fully aligned; Step 57 changes no code.
 
 ## Endpoint mappings
 
@@ -165,19 +218,20 @@ of Revocation and concurrent substitute SPA with wholly owned Nanda Digital did
 not reset time zero. The verified 150 MW agreement occurred in August 2025 and
 establishes the observed outcome; it is not a June 2024 predictive feature.
 
-The curated Digital Halo polygon satisfies the Tier A geometry requirement, but
-the strict cohort remains `CALIBRATION_ONLY`: whole-project physical construction
-and project-specific grid-work status at 11 June 2024 remain `NOT_FOUND` under
-the scope-complete chronology rule. The historical OSM extractor must not be run
-for training eligibility until both gates are resolved.
+The curated Digital Halo polygon satisfies the Tier A geometry requirement.
+Under the approved core cohort, its `NOT_FOUND` construction and
+project-specific grid-work states are prediction-time metadata and review
+states rather than automatic blockers. Digital Halo may proceed to historical
+spatial extraction after the required boundary and endpoint-equivalence review;
+no extraction has yet been run.
 
 The current label generator reads point/proxy eligibility from
 `dc_project_locations`; it does not load the separate manual GeoJSON. Its derived
 `location_usable` field therefore remains false until polygon integration is
 implemented. That implementation status does not change the evidence review:
 `GEO-JHR-006-001` is the curated Tier A project geometry, while historical
-spatial features remain unavailable because extraction stopped at the chronology
-gate.
+spatial features remain unavailable because polygon integration and extraction
+have not been implemented.
 
 ## Date precision and negatives
 

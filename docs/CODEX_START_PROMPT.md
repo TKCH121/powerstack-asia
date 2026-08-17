@@ -1,24 +1,40 @@
-# Codex handoff prompt
+# Codex Start Prompt
 
-Use this prompt only after the repository opens and runs successfully.
+Use this prompt when starting a new PowerStack Asia repository session.
 
-You are helping me build PowerStack Asia as a learning project. I am a beginner in Python/data science, so explain meaningful code changes simply, but do not dumb down the underlying reasoning.
+Work only on the currently checked-out branch. Do not switch, merge, push, or
+modify files until the requested task and repository state have been inspected.
 
-Current objective:
-Build PowerStack SiteFinder v0.1 for Johor.
+PowerStack is an evidence-first Power & Digital Infrastructure Intelligence
+system for Southeast Asia, starting with Johor. Its first commercial product is
+an analyst-led Power Pathway Assessment, not a self-serve SaaS platform.
 
-Critical modelling constraint:
-Do not invent confidential grid capacity. The target is eventually to estimate the probability of a viable >=100 MW power pathway within 48 months using public evidence.
+Read, in order:
 
-Repository rules:
-1. Preserve source provenance for every factual record.
-2. Use VERIFIED / DERIVED / INFERRED / NOT_FOUND explicitly.
-3. Never replace missing data with guessed values.
-4. Keep the stack simple: Python, Pandas/GeoPandas, DuckDB, scikit-learn, Streamlit.
-5. Do not introduce LangChain, vector databases, cloud infrastructure, Docker, dbt or orchestration unless the current task genuinely requires them.
-6. Make small commits and tests.
-7. Before changing multiple files, tell me what you plan to change.
-8. When errors occur, explain the error, the likely cause, and the exact fix.
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/PRODUCT_MEMO.md`
+4. `docs/INVESTMENT_MEMO.md`
+5. `docs/METHODOLOGY_OVERVIEW.md`
+6. `docs/MARKET_INTELLIGENCE_MODEL.md`
+7. `docs/PROJECT_SPEC.md`
+8. `docs/DATA_DICTIONARY.md`
+9. `docs/HISTORICAL_ENDPOINT_LABELS.md`
+10. `docs/HISTORICAL_OSM_PROTOTYPE.md`
+11. `docs/SOURCE_REGISTER.md`
+12. `docs/CODEX_HANDOFF.md`
 
-First task:
-Inspect the repository, run the existing scripts/tests, and confirm the starter pipeline works. Then propose the smallest next task to expand the historical Johor connection-event dataset without changing the architecture.
+Then inspect `git status`, recent history, the relevant source files, and any
+manual evidence files in scope.
+
+Preserve `VERIFIED`, `DERIVED`, `INFERRED`, and `NOT_FOUND`. Never invent
+coordinates, dates, MW, available grid capacity, or evidence of absence. Keep IT
+capacity separate from electrical measures. Do not let later agreements,
+project-enabled infrastructure, or current OSM assets leak into historical
+prediction features. Do not add ML, scoring weights, arbitrary proximity rules,
+or a duplicate source of truth.
+
+The intended next implementation step, when explicitly requested, is
+Intelligence Core v0.1. Before adding any new event or evidence tables, define
+canonical event identity and how the new layer references or crosswalks existing
+`connection_events`, `grid_asset_events`, and Power Pathway milestones.

@@ -6,6 +6,11 @@
 
 ## Loaded DuckDB tables
 
+The current manual baseline contains 8 projects, 26 connection events, 8
+project-location records, 6 grid-asset events, 8 pathway envelopes, 5 pathway
+components, and 24 pathway milestones. These are curated research records, not
+a complete market census.
+
 ### `dc_projects`
 
 Project identity, event-time/current operator, location text, announced IT MW, separately stated secured supply MW, location precision, status, source URL/date, fact type, and notes.
@@ -56,7 +61,9 @@ Project-linked asset events: asset identity/type/voltage, dated event, and `stat
 
 ## Power Pathway model
 
-The three Power Pathway tables contain the source-backed schema unit-test records for the three current historical projects. Stable `pathway_id`, `component_id`, and `milestone_id` values identify records.
+The three Power Pathway tables contain source-backed records for the eight
+current historical Johor projects. Stable `pathway_id`, `component_id`, and
+`milestone_id` values identify records.
 
 ### `power_pathways`
 
@@ -66,7 +73,10 @@ One assessment envelope per project and prediction date:
 - `prediction_date`, `prediction_date_precision`: the decision or event boundary being assessed
 - `information_cutoff_date`, `information_cutoff_date_precision`: optional latest information an ex-ante assessment may use; leave both null when no defensible cutoff is established
 - `assessment_scope`: `CURRENT_STATE` or `EX_ANTE`
-- `prediction_context`: optional context such as `PRE_LAND_ACQUISITION`, `PRE_ESA`, `PRE_CONSTRUCTION`, or `CURRENT_SCREEN`
+- `prediction_context`: optional context recorded at the chosen decision
+  boundary. Current values include `PRE_ESA`, `POST_SITE_COMMITMENT`,
+  `POST_LAND_ACQUISITION_PRE_ESA`, and `PRE_CONSTRUCTION`; blank remains valid
+  where the evidence does not support a context.
 - `target_power_mw`, `ultimate_power_mw`: electricity-related quantities only, never IT capacity
 - `target_power_measure_type`, `ultimate_power_measure_type`: `ELECTRICAL_SUPPLY`, `MAXIMUM_DEMAND`, `CONTRACTED_CAPACITY`, `CONNECTION_CAPACITY`, or `NOT_FOUND`
 - `target_power_mw_qualifier`, `ultimate_power_mw_qualifier`: `EXACT`, `APPROXIMATE`, `GREATER_THAN`, `LESS_THAN`, or `NOT_FOUND`
@@ -122,7 +132,20 @@ does not change the table schema.
 
 ### `source_registry`
 
-Reserved for a future structured source register. The authoritative current register is `docs/SOURCE_REGISTER.md`.
+Reserved for a future structured source register. It is not yet the canonical
+source system and may be empty. The authoritative current register is
+`docs/SOURCE_REGISTER.md` together with row-level source fields in the manual
+evidence files.
+
+## Designed future intelligence layer
+
+`docs/MARKET_INTELLIGENCE_MODEL.md` defines a proposed Intelligence Core v0.1
+for projects, organisations, sites, capacities, commercial roles, dated events,
+and reusable source evidence. Those entities are a design contract only: no
+corresponding production tables or seed files have been implemented. Future
+work must crosswalk or reference existing project, connection-event, grid-event,
+pathway, and milestone records rather than creating a second version of the same
+fact.
 
 ## Geospatial artifacts
 
